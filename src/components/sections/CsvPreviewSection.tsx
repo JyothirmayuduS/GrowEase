@@ -38,11 +38,11 @@ export function CsvPreviewSection({
             </button>
             <button
               type="button"
-              disabled={headers.length === 0}
+              disabled={headers.length === 0 || rows.length === 0}
               onClick={onConfirm}
               className="ge-btn-primary"
             >
-              Upload File
+              Confirm Import
             </button>
           </>
         }

@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
-import { animateBootProgress } from "@/lib/animate-boot-progress";
 import { animateParseProgress } from "@/lib/animate-parse-progress";
 import { streamImport } from "@/lib/api/stream-import";
 import { parseCsvFile } from "@/lib/csv/parse-csv";
@@ -10,7 +9,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { AiProcessingSection } from "@/components/sections/AiProcessingSection";
 import { CrmResultsSection } from "@/components/sections/CrmResultsSection";
 import { CsvPreviewSection } from "@/components/sections/CsvPreviewSection";
-import { CsvUploadSection } from "@/components/sections/CsvUploadSection";
+import { LandingUploadSection } from "@/components/sections/LandingUploadSection";
 import type { ImportApiResponse } from "@/lib/types/crm";
 import type { AppView, ParsedCsv } from "@/lib/types/app";
 
@@ -23,40 +22,17 @@ function wait(ms: number): Promise<void> {
 }
 
 export function HomeClient() {
-  const [view, setView] = useState<AppView>("boot");
+  const [view, setView] = useState<AppView>("landing");
   const [parsedCsv, setParsedCsv] = useState<ParsedCsv | null>(null);
   const [importResult, setImportResult] = useState<ImportApiResponse | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [loaderProgress, setLoaderProgress] = useState(0);
-  const [loaderStatus, setLoaderStatus] = useState("Initializing GrowEasy");
+  const [loaderStatus, setLoaderStatus] = useState("Reading CSV");
   const [loaderFileName, setLoaderFileName] = useState("");
-  const [loaderSessionKey, setLoaderSessionKey] = useState("boot");
+  const [loaderSessionKey, setLoaderSessionKey] = useState("parse");
 
   const importRunId = useRef(0);
   const parseRunId = useRef(0);
-  const bootRunId = useRef(0);
-
-  useEffect(() => {
-    const runId = bootRunId.current + 1;
-    bootRunId.current = runId;
-
-    void (async () => {
-      setLoaderProgress(0);
-      setLoaderStatus("Initializing GrowEasy");
-      setLoaderSessionKey("boot");
-      setView("boot");
-
-      await animateBootProgress((percent, status) => {
-        if (runId !== bootRunId.current) return;
-        setLoaderProgress(percent);
-        setLoaderStatus(status);
-      });
-
-      if (runId !== bootRunId.current) return;
-      await wait(400);
-      setView("upload");
-    })();
-  }, []);
 
   const handleFileSelect = useCallback(async (file: File) => {
     if (file instanceof Event || !(file instanceof File)) return;
@@ -93,12 +69,12 @@ export function HomeClient() {
 
       if (parsed.rows.length === 0 && parsed.headers.length === 0) {
         alert("The CSV file appears to be empty.");
-        setView("upload");
+        setView("landing");
         return;
       }
 
       setLoaderProgress(100);
-      setLoaderStatus("Preparing Preview");
+      setLoaderStatus("Opening GrowEasy");
       await wait(600);
 
       if (runId !== parseRunId.current) return;
@@ -107,7 +83,7 @@ export function HomeClient() {
     } catch {
       if (runId !== parseRunId.current) return;
       alert("Failed to parse CSV. Please check the file and try again.");
-      setView("upload");
+      setView("landing");
     }
   }, []);
 
@@ -185,59 +161,61 @@ export function HomeClient() {
     setLoaderProgress(0);
     setLoaderStatus("Reading CSV");
     setLoaderFileName("");
-    setLoaderSessionKey("upload");
-    setView("upload");
+    setLoaderSessionKey("parse");
+    setView("landing");
   };
 
-  const isLoading = view === "boot" || view === "importing";
+  if (view === "landing") {
+    return <LandingUploadSection onFileSelect={handleFileSelect} />;
+  }
 
-  return (
-    <AppShell>
-      {isLoading ? (
+  if (view === "importing") {
+    return (
+      <div className="h-screen overflow-hidden bg-white dark:bg-slate-950">
         <AiProcessingSection
           progress={loaderProgress}
           status={loaderStatus}
           fileName={loaderFileName || undefined}
           sessionKey={loaderSessionKey}
-          variant={
-            loaderSessionKey === "boot" || loaderSessionKey.startsWith("parse") ? "parse" : "import"
-          }
+          variant={loaderSessionKey.startsWith("parse") ? "parse" : "import"}
         />
-      ) : (
-        <>
-          {view === "upload" && <CsvUploadSection onFileSelect={handleFileSelect} />}
+      </div>
+    );
+  }
 
-          {view === "preview" && parsedCsv && (
-            <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-              {importError && (
-                <div className="shrink-0 border-b border-red-200 bg-red-50 px-8 py-3 text-sm text-red-700">
-                  <strong>Import failed:</strong> {importError}
-                  <button
-                    type="button"
-                    onClick={handleConfirmImport}
-                    className="ml-3 font-semibold underline"
-                  >
-                    Retry
-                  </button>
-                </div>
-              )}
-              <CsvPreviewSection
-                data={parsedCsv}
-                onConfirm={handleConfirmImport}
-                onBack={handleReset}
-                onReplaceFile={handleFileSelect}
-              />
+  return (
+    <AppShell>
+      {view === "preview" && parsedCsv && (
+        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+          {importError && (
+            <div className="flex shrink-0 items-center justify-between gap-4 border-b border-red-200 bg-red-50 px-6 py-3 text-sm text-red-800">
+              <p>
+                <strong>Import failed:</strong> {importError}
+              </p>
+              <button
+                type="button"
+                onClick={handleConfirmImport}
+                className="shrink-0 rounded-md bg-red-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-800"
+              >
+                Retry
+              </button>
             </div>
           )}
+          <CsvPreviewSection
+            data={parsedCsv}
+            onConfirm={handleConfirmImport}
+            onBack={handleReset}
+            onReplaceFile={handleFileSelect}
+          />
+        </div>
+      )}
 
-          {view === "results" && parsedCsv && importResult && (
-            <CrmResultsSection
-              fileName={parsedCsv.fileName}
-              result={importResult}
-              onBack={handleReset}
-            />
-          )}
-        </>
+      {view === "results" && parsedCsv && importResult && (
+        <CrmResultsSection
+          fileName={parsedCsv.fileName}
+          result={importResult}
+          onBack={handleReset}
+        />
       )}
     </AppShell>
   );

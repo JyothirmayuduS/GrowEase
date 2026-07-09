@@ -77,6 +77,12 @@ export async function extractBatch(
       return processRecords(rows, parsed.records ?? [], rowOffset);
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
+      const message = lastError.message;
+      const shouldFallback =
+        /quota|rate.?limit|billing|401|403|429|invalid|not configured/i.test(message);
+      if (shouldFallback) {
+        break;
+      }
       if (attempt < maxRetries) {
         await wait(500 * 2 ** (attempt - 1));
       }

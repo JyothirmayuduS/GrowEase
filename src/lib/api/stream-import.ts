@@ -11,8 +11,12 @@ export async function streamImport(
   });
 
   if (!response.ok) {
-    const err = await response.json().catch(() => ({ error: "Import request failed" }));
-    throw new Error(err.error ?? `Import failed (${response.status})`);
+    const err = await response.json().catch(() => ({ error: "" }));
+    const fallback =
+      response.status >= 500
+        ? "Server error — run npm run dev:reset and try again."
+        : "Import request failed";
+    throw new Error(err.error || fallback);
   }
 
   if (!response.body) {
