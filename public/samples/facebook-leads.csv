@@ -1,0 +1,5 @@
+created_at,full_name,email_address,phone,organization,city_name,state_name,country_name,owner,status,notes,source,property_possession,extra_info
+2026-05-13 14:20:48,John Doe,john.doe@example.com,+91-9876543210,GrowEasy,Mumbai,Maharashtra,India,test@gmail.com,good lead follow up,Client wants demo next week,facebook ads,Q1 2027,Interested in 2BHK
+2026-05-13 14:25:30,Sarah Johnson,sarah@work.com; sarah.personal@gmail.com,9876543211,Tech Solutions,Bangalore,Karnataka,India,test@gmail.com,did not connect,Busy - call back,,
+2026-05-13 14:30:15,Rajesh Patel,,,Startup Inc,Delhi,Delhi,India,test@gmail.com,bad lead,Not interested,,
+2026-05-13 14:35:22,Priya Singh,priya.singh@example.com,9123456789,Enterprise Corp,Pune,Maharashtra,India,test@gmail.com,sale done,Deal closed,meridian tower,,

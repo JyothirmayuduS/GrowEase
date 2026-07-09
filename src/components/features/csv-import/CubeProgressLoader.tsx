@@ -4,7 +4,6 @@ import {
   clampProgress,
   getBoxPhase,
   getStatusForProgress,
-  getVisibleBoxCount,
   isLoaderComplete,
   type LoaderStatus,
 } from "@/lib/import-progress";
@@ -30,8 +29,7 @@ export function CubeProgressLoader({
   const clamped = clampProgress(progress);
   const complete = isLoaderComplete(clamped);
   const statusLabel = status ?? getStatusForProgress(clamped);
-  const visibleBoxes = getVisibleBoxCount(clamped);
-  const hasStack = visibleBoxes > 0;
+  const hasStack = clamped > 0;
 
   return (
     <section
@@ -75,7 +73,7 @@ export function CubeProgressLoader({
           />
         </div>
         <p className="mt-2 text-center text-xs font-medium tabular-nums text-[#6E6E6E]">
-          {Math.round(clamped)}% · {visibleBoxes}/8 cubes
+          {Math.round(clamped)}%
         </p>
       </div>
 

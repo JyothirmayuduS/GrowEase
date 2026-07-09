@@ -1,4 +1,4 @@
-export type AppView = "upload" | "processing" | "preview" | "importing" | "results";
+export type AppView = "upload" | "preview" | "importing" | "results";
 
 export interface ParsedCsv {
   fileName: string;

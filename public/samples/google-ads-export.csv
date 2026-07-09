@@ -1,0 +1,4 @@
+Lead Name,Email,Phone Number,Company,City,State,Country,Lead Status,Comments
+Alice Brown,alice@example.com,9988776655,AdCorp,Hyderabad,Telangana,India,GOOD_LEAD_FOLLOW_UP,Requested brochure
+Bob Wilson,bob@example.com,8877665544,,Chennai,Tamil Nadu,India,DID_NOT_CONNECT,
+No Contact Person,,,EmptyCo,Jaipur,Rajasthan,India,BAD_LEAD,No contact details

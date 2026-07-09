@@ -6,10 +6,11 @@ import { Bell, HelpCircle, Search } from "lucide-react";
 import { AppLogo } from "@/components/icons/AppLogo";
 import { Button } from "@/components/ui/button";
 import { HeaderNav } from "@/components/layout/HeaderNav";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[#E8E8E8] bg-white">
+    <header className="sticky top-0 z-50 w-full border-b border-[#E8E8E8] bg-white dark:border-slate-800 dark:bg-slate-950">
       <div className="mx-auto flex h-[52px] max-w-[1440px] items-center justify-between px-6">
         <AppLogo />
         <HeaderNav />
@@ -24,6 +25,7 @@ export function Header() {
           <HeaderIconButton icon={Search} label="Search" />
           <HeaderIconButton icon={HelpCircle} label="Help" className="hidden sm:flex" />
           <HeaderIconButton icon={Bell} label="Notifications" className="hidden sm:flex" />
+          <ThemeToggle />
 
           <button
             type="button"
@@ -54,7 +56,7 @@ function HeaderIconButton({ icon: Icon, label, className }: HeaderIconButtonProp
       aria-label={label}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
-      className={`flex h-9 w-9 items-center justify-center rounded-full text-[#505050] transition-colors hover:bg-[#F5F5F5] ${className ?? ""}`}
+      className={`flex h-9 w-9 items-center justify-center rounded-full text-[#505050] transition-colors hover:bg-[#F5F5F5] dark:text-slate-300 dark:hover:bg-slate-800 ${className ?? ""}`}
     >
       <Icon className="h-[18px] w-[18px]" />
     </motion.button>
