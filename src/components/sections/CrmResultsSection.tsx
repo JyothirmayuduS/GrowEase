@@ -1,11 +1,11 @@
 "use client";
 
-import { ArrowLeft, CheckCircle2, Download, XCircle } from "lucide-react";
+import { Download } from "lucide-react";
 
+import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";
 import { CRM_FIELDS, CRM_FIELD_LABELS } from "@/lib/constants/crm";
 import type { CrmLeadRecord, ImportApiResponse } from "@/lib/types/crm";
 import { VirtualTable } from "@/components/ui/virtual-table";
-import { Button } from "@/components/ui/button";
 
 interface CrmResultsSectionProps {
   fileName: string;
@@ -45,101 +45,103 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
     return row;
   });
 
-  const skippedHeaders = ["Row #", "Reason", "Raw Data"];
+  const skippedHeaders = ["ROW #", "REASON", "RAW DATA"];
   const skippedRows = result.skipped.map((s) => ({
-    "Row #": String(s.rowIndex + 1),
-    Reason: s.reason,
-    "Raw Data": JSON.stringify(s.raw),
+    "ROW #": String(s.rowIndex + 1),
+    REASON: s.reason,
+    "RAW DATA": JSON.stringify(s.raw),
   }));
 
   return (
-    <section className="flex flex-1 flex-col bg-[#F5F8FC] px-6 py-6 dark:bg-slate-950">
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onBack}
-              className="flex items-center gap-1.5 text-sm font-medium text-[#6E6E6E] hover:text-[#2C2C2C] dark:text-slate-400 dark:hover:text-slate-100"
-            >
-              <ArrowLeft className="h-4 w-4" />
+    <LeadSourcesPage
+      title="Import results"
+      description={`${result.totals.imported} of ${result.totals.total} leads imported from ${fileName}.`}
+    >
+      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-white dark:bg-slate-950">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[var(--ge-border)] px-6 py-3 dark:border-slate-800">
+          <div className="flex flex-wrap gap-3">
+            <MetricPill label="Total" value={result.totals.total} />
+            <MetricPill label="Imported" value={result.totals.imported} tone="green" />
+            <MetricPill label="Skipped" value={result.totals.skipped} tone="amber" />
+            <MetricPill label="Source" value={fileName} isText />
+          </div>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={onBack} className="ge-btn-secondary">
               Import another
             </button>
-            <div>
-              <h2 className="text-lg font-bold text-[#2C2C2C] dark:text-slate-100">
-                Import Results — {fileName}
-              </h2>
-              <p className="text-xs text-[#6E6E6E] dark:text-slate-400">
-                AI-mapped GrowEasy CRM records
+            <button
+              type="button"
+              onClick={() =>
+                downloadCsv(recordsToCsv(result.imported), `groweasy-import-${Date.now()}.csv`)
+              }
+              className="ge-btn-primary inline-flex items-center"
+            >
+              <Download className="mr-1.5 h-4 w-4" />
+              Download CSV
+            </button>
+          </div>
+        </div>
+
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 py-4">
+          <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-[var(--ge-border)]">
+            <VirtualTable
+              headers={crmHeaders}
+              rows={crmRows}
+              maxHeight="calc(100vh - 300px)"
+              variant="groweasy"
+            />
+          </div>
+
+          {result.skipped.length > 0 && (
+            <div className="mt-5 shrink-0 overflow-hidden rounded-lg border border-amber-200 dark:border-amber-900">
+              <p className="border-b border-amber-100 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+                Skipped records ({result.skipped.length})
               </p>
+              <VirtualTable
+                headers={skippedHeaders}
+                rows={skippedRows}
+                maxHeight="min(28vh, 220px)"
+                variant="groweasy"
+              />
             </div>
-          </div>
-          <Button
-            type="button"
-            onClick={() =>
-              downloadCsv(recordsToCsv(result.imported), `groweasy-import-${Date.now()}.csv`)
-            }
-            className="h-9 gap-2 rounded-full bg-[#1473E6] px-5 text-sm font-semibold text-white hover:bg-[#0D66D0]"
-          >
-            <Download className="h-4 w-4" />
-            Download CRM CSV
-          </Button>
+          )}
         </div>
-
-        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <StatCard
-            label="Total Rows"
-            value={result.totals.total}
-            icon={<CheckCircle2 className="h-5 w-5 text-[#1473E6]" />}
-          />
-          <StatCard
-            label="Imported"
-            value={result.totals.imported}
-            icon={<CheckCircle2 className="h-5 w-5 text-green-600" />}
-          />
-          <StatCard
-            label="Skipped"
-            value={result.totals.skipped}
-            icon={<XCircle className="h-5 w-5 text-amber-600" />}
-          />
-        </div>
-
-        <div className="mb-6 rounded-lg border border-[#B3D4FF] bg-white dark:border-slate-700 dark:bg-slate-900">
-          <h3 className="border-b border-[#E8E8E8] px-4 py-3 text-sm font-semibold text-[#2C2C2C] dark:border-slate-700 dark:text-slate-100">
-            Successfully Parsed Records ({result.imported.length})
-          </h3>
-          <VirtualTable headers={crmHeaders} rows={crmRows} />
-        </div>
-
-        {result.skipped.length > 0 && (
-          <div className="rounded-lg border border-amber-200 bg-white dark:border-amber-900 dark:bg-slate-900">
-            <h3 className="border-b border-amber-100 px-4 py-3 text-sm font-semibold text-amber-800 dark:border-amber-900 dark:text-amber-200">
-              Skipped Records ({result.skipped.length})
-            </h3>
-            <VirtualTable headers={skippedHeaders} rows={skippedRows} maxHeight="min(40vh, 320px)" />
-          </div>
-        )}
       </div>
-    </section>
+    </LeadSourcesPage>
   );
 }
 
-function StatCard({
+function MetricPill({
   label,
   value,
-  icon,
+  tone,
+  isText,
 }: {
   label: string;
-  value: number;
-  icon: React.ReactNode;
+  value: number | string;
+  tone?: "green" | "amber";
+  isText?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-[#B3D4FF] bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
-      {icon}
-      <div>
-        <p className="text-xs text-[#6E6E6E] dark:text-slate-400">{label}</p>
-        <p className="text-xl font-bold text-[#2C2C2C] dark:text-slate-100">{value}</p>
-      </div>
+    <div className="rounded-lg border border-[var(--ge-border)] bg-[var(--ge-surface)] px-4 py-2 dark:border-slate-700 dark:bg-slate-900">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--ge-text-muted)]">
+        {label}
+      </p>
+      <p
+        className={`mt-0.5 font-semibold ${
+          isText
+            ? "max-w-[220px] truncate text-sm text-[var(--ge-text)]"
+            : `text-lg tabular-nums ${
+                tone === "green"
+                  ? "text-green-600"
+                  : tone === "amber"
+                    ? "text-amber-600"
+                    : "text-[var(--ge-text)]"
+              }`
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

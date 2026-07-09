@@ -1,3 +1,21 @@
+export const PARSE_LOADER_STEPS = [
+  { at: 20, label: "Reading CSV" },
+  { at: 55, label: "Detecting Columns" },
+  { at: 85, label: "Validating Rows" },
+  { at: 100, label: "Preparing Preview" },
+] as const;
+
+export type ParseLoaderStatus = (typeof PARSE_LOADER_STEPS)[number]["label"];
+
+export function getParseStatusForProgress(progress: number): ParseLoaderStatus {
+  const clamped = clampProgress(progress);
+  let status: ParseLoaderStatus = PARSE_LOADER_STEPS[0].label;
+  for (const step of PARSE_LOADER_STEPS) {
+    if (clamped >= step.at) status = step.label;
+  }
+  return status;
+}
+
 export const LOADER_STEPS = [
   { at: 10, label: "Reading CSV" },
   { at: 25, label: "Detecting Columns" },

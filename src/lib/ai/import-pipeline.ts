@@ -1,4 +1,5 @@
 import { DEFAULT_BATCH_SIZE, MAX_RETRIES } from "@/lib/constants/crm";
+import { getStatusForProgress } from "@/lib/import-progress";
 import { extractBatch } from "@/lib/ai/extract-batch";
 import type { ImportApiResponse } from "@/lib/types/crm";
 
@@ -7,6 +8,10 @@ export interface ImportProgressUpdate {
   status: string;
   batch: number;
   totalBatches: number;
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function runServerImportPipeline(
@@ -20,37 +25,46 @@ export async function runServerImportPipeline(
   const imported: ImportApiResponse["imported"] = [];
   const skipped: ImportApiResponse["skipped"] = [];
 
-  const statusForBatch = (batch: number): string => {
-    const ratio = batch / totalBatches;
-    if (ratio <= 0.25) return "Sending AI Batch 1";
-    if (ratio <= 0.5) return "Sending AI Batch 2";
-    if (ratio <= 0.7) return "Extracting CRM Fields";
-    if (ratio <= 0.85) return "Validating Records";
-    return "Finalizing Import";
+  const emit = (percent: number, batch: number) => {
+    onProgress?.({
+      percent: Math.round(percent),
+      status: getStatusForProgress(percent),
+      batch,
+      totalBatches,
+    });
   };
+
+  emit(5, 0);
 
   for (let batchIndex = 0; batchIndex < totalBatches; batchIndex += 1) {
     const start = batchIndex * batchSize;
     const batchRows = rows.slice(start, start + batchSize);
+    const batchStart = 8 + (batchIndex / totalBatches) * 82;
+    const batchEnd = 8 + ((batchIndex + 1) / totalBatches) * 82;
 
-    onProgress?.({
-      percent: Math.round((batchIndex / totalBatches) * 90) + 5,
-      status: statusForBatch(batchIndex + 1),
-      batch: batchIndex + 1,
-      totalBatches,
-    });
+    emit(batchStart, batchIndex + 1);
 
-    const result = await extractBatch(headers, batchRows, start, MAX_RETRIES);
-    imported.push(...result.imported);
-    skipped.push(...result.skipped);
+    let tick = batchStart;
+    const ticker = setInterval(() => {
+      tick = Math.min(tick + 0.4, batchEnd - 2);
+      emit(tick, batchIndex + 1);
+    }, 900);
+
+    try {
+      const result = await extractBatch(headers, batchRows, start, MAX_RETRIES);
+      imported.push(...result.imported);
+      skipped.push(...result.skipped);
+    } finally {
+      clearInterval(ticker);
+    }
+
+    emit(batchEnd, batchIndex + 1);
+    await wait(400);
   }
 
-  onProgress?.({
-    percent: 100,
-    status: "Completed",
-    batch: totalBatches,
-    totalBatches,
-  });
+  emit(98, totalBatches);
+  await wait(500);
+  emit(100, totalBatches);
 
   return {
     imported,

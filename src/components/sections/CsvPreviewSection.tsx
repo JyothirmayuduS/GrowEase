@@ -1,86 +1,106 @@
 "use client";
 
-import { ArrowLeft, FileSpreadsheet, Loader2 } from "lucide-react";
+import { useRef } from "react";
+import { FileSpreadsheet, X } from "lucide-react";
 
+import { ImportPanel } from "@/components/layout/ImportPanel";
+import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";
 import { VirtualTable } from "@/components/ui/virtual-table";
-import { Button } from "@/components/ui/button";
+import { ACCEPTED_TYPES } from "@/components/features/csv-import/FileDropzone";
 import type { ParsedCsv } from "@/lib/types/app";
 
 interface CsvPreviewSectionProps {
   data: ParsedCsv;
   onConfirm: () => void;
   onBack: () => void;
-  isParsing?: boolean;
+  onReplaceFile?: (file: File) => void;
 }
 
 export function CsvPreviewSection({
   data,
   onConfirm,
   onBack,
-  isParsing = false,
+  onReplaceFile,
 }: CsvPreviewSectionProps) {
   const { headers, rows } = data;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <section className="flex flex-1 flex-col bg-[#F5F8FC] px-6 py-6 dark:bg-slate-950">
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+    <LeadSourcesPage
+      title="Preview import"
+      description={`${rows.length} rows in ${data.fileName} — review before uploading.`}
+    >
+      <ImportPanel
+        footer={
+          <>
+            <button type="button" onClick={onBack} className="ge-btn-secondary">
+              Cancel
+            </button>
             <button
               type="button"
-              onClick={onBack}
-              className="flex items-center gap-1.5 text-sm font-medium text-[#6E6E6E] transition-colors hover:text-[#2C2C2C] dark:text-slate-400 dark:hover:text-slate-100"
+              disabled={headers.length === 0}
+              onClick={onConfirm}
+              className="ge-btn-primary"
             >
-              <ArrowLeft className="h-4 w-4" />
-              Back
+              Upload File
             </button>
-            <div className="flex items-center gap-2">
-              <FileSpreadsheet className="h-5 w-5 text-[#1473E6]" />
-              <div>
-                <h2 className="text-lg font-bold text-[#2C2C2C] dark:text-slate-100">
-                  {data.fileName}
-                </h2>
-                <p className="text-xs text-[#6E6E6E] dark:text-slate-400">
-                  {rows.length} rows · {(data.fileSize / 1024).toFixed(1)} KB
+          </>
+        }
+      >
+        <div className="flex h-full min-h-0 flex-1 flex-col gap-4">
+          <div className="flex shrink-0 items-center justify-between gap-3 rounded-lg border border-[var(--ge-border)] bg-[var(--ge-surface)] px-4 py-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#e8f5ef]">
+                <FileSpreadsheet className="h-4 w-4 text-[#2d6a4f]" />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-[var(--ge-text)]">{data.fileName}</p>
+                <p className="text-[12px] text-[var(--ge-text-muted)]">
+                  {(data.fileSize / 1024).toFixed(2)} KB · {rows.length} rows
                 </p>
               </div>
             </div>
+            {onReplaceFile && (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={ACCEPTED_TYPES}
+                  className="hidden"
+                  onChange={(e) => {
+                    const selected = e.target.files?.[0];
+                    e.target.value = "";
+                    if (selected instanceof File) onReplaceFile(selected);
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  aria-label="Replace file"
+                  className="shrink-0 rounded-lg p-1.5 text-[var(--ge-text-muted)] hover:bg-white hover:text-[var(--ge-text)]"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </>
+            )}
           </div>
 
-          <Button
-            type="button"
-            disabled={isParsing || headers.length === 0}
-            onClick={(e) => {
-              e.preventDefault();
-              onConfirm();
-            }}
-            className="h-9 rounded-full bg-[#1473E6] px-6 text-sm font-semibold text-white hover:bg-[#0D66D0] disabled:opacity-50"
-          >
-            {isParsing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Parsing…
-              </>
+          <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-[var(--ge-border)]">
+            {headers.length === 0 ? (
+              <p className="p-12 text-center text-sm text-[var(--ge-text-muted)]">
+                No columns found in this CSV file.
+              </p>
             ) : (
-              "Confirm Import"
+              <VirtualTable
+                headers={headers}
+                rows={rows}
+                maxHeight="calc(100vh - 320px)"
+                variant="groweasy"
+              />
             )}
-          </Button>
+          </div>
         </div>
-
-        <div className="flex-1 overflow-hidden rounded-lg border border-[#B3D4FF] bg-white dark:border-slate-700 dark:bg-slate-900">
-          {headers.length === 0 ? (
-            <p className="p-8 text-center text-sm text-[#6E6E6E] dark:text-slate-400">
-              No columns found in this CSV file.
-            </p>
-          ) : (
-            <VirtualTable headers={headers} rows={rows} maxHeight="min(65vh, 560px)" />
-          )}
-        </div>
-
-        <p className="mt-3 text-center text-xs text-[#6E6E6E] dark:text-slate-400">
-          Review your data above. AI mapping begins only after you confirm.
-        </p>
-      </div>
-    </section>
+      </ImportPanel>
+    </LeadSourcesPage>
   );
 }

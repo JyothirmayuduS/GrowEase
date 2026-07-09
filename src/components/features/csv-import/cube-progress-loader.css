@@ -55,11 +55,21 @@
 }
 
 .cube-progress-loader .loader .box.flying {
-  animation: cube-fly-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: cube-fly-in 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .cube-progress-loader .loader .box.landed {
   transform: translate(0, 0);
+  animation: cube-settle 0.5s ease-out;
+}
+
+@keyframes cube-settle {
+  from {
+    transform: translate(0, -6px);
+  }
+  to {
+    transform: translate(0, 0);
+  }
 }
 
 .cube-progress-loader .loader .box div {
@@ -72,7 +82,7 @@
 }
 
 .cube-progress-loader .loader .box.flying div {
-  animation: cube-pop-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: cube-pop-in 1.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .cube-progress-loader .loader .box.landed div {
@@ -204,7 +214,7 @@
   height: 100%;
   border-radius: 9999px;
   background: #1473e6;
-  transition: width 0.35s ease-out;
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .cube-progress-loader.complete .cube-progress-loader__progress-fill {

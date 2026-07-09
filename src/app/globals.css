@@ -52,10 +52,19 @@
   --brand-blue: #1473e6;
   --brand-blue-hover: #0d66d0;
   --brand-red: #eb1000;
-  --brand-border: #b3d4ff;
+  --brand-coral: #f0a890;
+  --brand-coral-hover: #e89578;
+  --brand-teal: #7dcea0;
+  --brand-border: #e1e1e1;
   --brand-text: #2c2c2c;
   --brand-text-muted: #6e6e6e;
-  --brand-surface: #f5f8fc;
+  --brand-surface: #f5f5f5;
+
+  --ge-page-bg: #f4f5f7;
+  --ge-surface: #fafafa;
+  --ge-text: #2c2c2c;
+  --ge-text-muted: #6e6e6e;
+  --ge-border: #e8e8e8;
 
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -130,9 +139,18 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[var(--ge-page-bg)] text-foreground;
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer components {
+  .ge-btn-primary {
+    @apply inline-flex h-10 items-center justify-center rounded-lg bg-[var(--brand-coral)] px-5 text-sm font-semibold text-white transition-colors hover:bg-[var(--brand-coral-hover)] disabled:opacity-50;
+  }
+  .ge-btn-secondary {
+    @apply inline-flex h-10 items-center justify-center rounded-lg border border-[var(--ge-border)] bg-white px-5 text-sm font-medium text-[var(--ge-text)] transition-colors hover:bg-[var(--ge-surface)] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200;
   }
 }
