@@ -75,8 +75,11 @@ export function CsvUploadSection({ onFileSelect }: CsvUploadSectionProps) {
             accept={ACCEPTED_TYPES}
             className="hidden"
             onChange={(e) => {
-              handleFiles(e.target.files);
+              const selected = e.target.files?.[0];
               e.target.value = "";
+              if (selected instanceof File) {
+                onFileSelect?.(selected);
+              }
             }}
           />
 

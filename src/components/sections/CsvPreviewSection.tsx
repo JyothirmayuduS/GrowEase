@@ -37,9 +37,9 @@ export function CsvPreviewSection({ data, onConfirm, onBack }: CsvPreviewSection
     <motion.section
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-1 flex-col overflow-hidden bg-[#F5F8FC] px-6 py-6"
+      className="flex min-h-0 flex-1 flex-col bg-[#F5F8FC] px-6 py-6"
     >
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col overflow-hidden">
+      <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <button
@@ -73,7 +73,7 @@ export function CsvPreviewSection({ data, onConfirm, onBack }: CsvPreviewSection
           </Button>
         </div>
 
-        <div className="flex-1 overflow-auto rounded-lg border border-[#B3D4FF] bg-white">
+        <div className="min-h-[420px] flex-1 overflow-auto rounded-lg border border-[#B3D4FF] bg-white">
           <DataTable columns={columns} data={data.rows} className="border-0" />
         </div>
 

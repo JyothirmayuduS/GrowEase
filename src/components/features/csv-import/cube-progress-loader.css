@@ -1,0 +1,228 @@
+/* Uiverse.io by Admin12121 — 3D cubes fly in & stack (no hole / drop) */
+
+.cube-progress-loader {
+  --primary: rgba(20, 115, 230, 1);
+  --primary-light: #2f8fff;
+}
+
+.cube-progress-loader__stage-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  width: 100%;
+  perspective: 900px;
+}
+
+.cube-progress-loader .loader {
+  width: 200px;
+  height: 220px;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.cube-progress-loader .loader::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  width: 130px;
+  height: 28px;
+  margin-left: -65px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(20, 115, 230, 0.22) 0%, rgba(20, 115, 230, 0) 72%);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.cube-progress-loader.has-stack .loader::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (max-width: 480px) {
+  .cube-progress-loader .loader {
+    zoom: 0.5;
+  }
+}
+
+.cube-progress-loader .loader .box {
+  --x: 0;
+  --y: 0;
+  position: absolute;
+  will-change: transform;
+}
+
+.cube-progress-loader .loader .box.flying {
+  animation: cube-fly-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.cube-progress-loader .loader .box.landed {
+  transform: translate(0, 0);
+}
+
+.cube-progress-loader .loader .box div {
+  background-color: var(--primary);
+  width: 48px;
+  height: 48px;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0);
+}
+
+.cube-progress-loader .loader .box.flying div {
+  animation: cube-pop-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.cube-progress-loader .loader .box.landed div {
+  transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1);
+}
+
+.cube-progress-loader .loader .box div::before,
+.cube-progress-loader .loader .box div::after {
+  --rx: 90deg;
+  --ry: 0deg;
+  --z: 24px;
+  --y: -24px;
+  --x: 0;
+  content: "";
+  position: absolute;
+  background-color: inherit;
+  width: inherit;
+  height: inherit;
+  transform: rotateX(var(--rx)) rotateY(var(--ry)) translate(var(--x), var(--y)) translateZ(var(--z));
+  filter: brightness(var(--b, 1.2));
+}
+
+.cube-progress-loader .loader .box div::after {
+  --rx: 0deg;
+  --ry: 90deg;
+  --x: 24px;
+  --y: 0;
+  --b: 1.4;
+}
+
+.cube-progress-loader .loader .box0 {
+  --x: -220px;
+  --y: -120px;
+  left: 58px;
+  top: 108px;
+}
+
+.cube-progress-loader .loader .box1 {
+  --x: -260px;
+  --y: 120px;
+  left: 25px;
+  top: 120px;
+}
+
+.cube-progress-loader .loader .box2 {
+  --x: 120px;
+  --y: -190px;
+  left: 58px;
+  top: 64px;
+}
+
+.cube-progress-loader .loader .box3 {
+  --x: 280px;
+  --y: -40px;
+  left: 91px;
+  top: 120px;
+}
+
+.cube-progress-loader .loader .box4 {
+  --x: 60px;
+  --y: 200px;
+  left: 58px;
+  top: 132px;
+}
+
+.cube-progress-loader .loader .box5 {
+  --x: -220px;
+  --y: -120px;
+  left: 25px;
+  top: 76px;
+}
+
+.cube-progress-loader .loader .box6 {
+  --x: -260px;
+  --y: 120px;
+  left: 91px;
+  top: 76px;
+}
+
+.cube-progress-loader .loader .box7 {
+  --x: -240px;
+  --y: 200px;
+  left: 58px;
+  top: 87px;
+}
+
+@keyframes cube-fly-in {
+  from {
+    transform: translate(var(--x), var(--y));
+  }
+  to {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes cube-pop-in {
+  from {
+    transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0);
+  }
+  to {
+    transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1);
+  }
+}
+
+.cube-progress-loader.complete .loader {
+  animation: cube-done-pulse 0.6s ease-out;
+}
+
+@keyframes cube-done-pulse {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.cube-progress-loader__progress-track {
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: #e8f4ff;
+}
+
+.cube-progress-loader__progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: #1473e6;
+  transition: width 0.35s ease-out;
+}
+
+.cube-progress-loader.complete .cube-progress-loader__progress-fill {
+  background: #16a34a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cube-progress-loader .loader .box.flying {
+    animation: none;
+    transform: translate(0, 0);
+  }
+
+  .cube-progress-loader .loader .box.flying div {
+    animation: none;
+    transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1);
+  }
+
+  .cube-progress-loader.complete .loader {
+    animation: none;
+  }
+}

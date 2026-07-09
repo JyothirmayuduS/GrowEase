@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:turbo": "next dev --turbopack",
+    "dev:clean": "rm -rf .next node_modules/.cache && next dev",
+    "dev:reset": "rm -rf .next node_modules/.cache && next build && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
