@@ -1,7 +1,8 @@
-import type { CrmLeadRecord, CrmStatus, DataSource } from "@/lib/types/crm";
+import type { CrmLeadRecord, CrmStatus, DataSource, ImportApiResponse } from "@/lib/types/crm";
 import type { QualitySummary } from "@/lib/validation/row-quality";
 
-const HISTORY_KEY = "ge-import-history-v1";
+const HISTORY_KEY = "ge-import-history-v2";
+const LEGACY_HISTORY_KEY = "ge-import-history-v1";
 const LEADS_KEY = "ge-leads-store-v1";
 const MAX_HISTORY = 20;
 const MAX_LEADS = 500;
@@ -13,12 +14,15 @@ export interface ImportHistoryEntry {
   totals: { imported: number; skipped: number; total: number };
   quality: QualitySummary;
   avgConfidence: number;
+  /** Full import payload so history can reopen the results screen. */
+  result: ImportApiResponse;
 }
 
 export interface StoredLead extends CrmLeadRecord {
   id: string;
   importedAt: string;
   sourceFile: string;
+  importId?: string;
   qualityState: "clean" | "needs_review";
   confidence: number;
 }
@@ -39,15 +43,58 @@ function writeJson(key: string, value: unknown) {
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
   } catch {
-    /* quota */
+    /* quota — drop oldest result payloads if needed */
+    try {
+      if (key === HISTORY_KEY && Array.isArray(value)) {
+        const slim = (value as ImportHistoryEntry[]).map((e, i) =>
+          i < 5
+            ? e
+            : {
+                ...e,
+                result: {
+                  imported: e.result?.imported?.slice(0, 50) ?? [],
+                  skipped: e.result?.skipped ?? [],
+                  totals: e.totals,
+                },
+              }
+        );
+        window.localStorage.setItem(key, JSON.stringify(slim));
+      }
+    } catch {
+      /* ignore */
+    }
   }
 }
 
 export function getImportHistory(): ImportHistoryEntry[] {
-  return readJson<ImportHistoryEntry[]>(HISTORY_KEY, []);
+  const current = readJson<ImportHistoryEntry[]>(HISTORY_KEY, []);
+  if (current.length > 0) return current;
+
+  // Migrate v1 entries (no result payload) — keep metadata only
+  const legacy = readJson<
+    Array<Omit<ImportHistoryEntry, "result"> & { result?: ImportApiResponse }>
+  >(LEGACY_HISTORY_KEY, []);
+  if (legacy.length === 0) return [];
+
+  const migrated: ImportHistoryEntry[] = legacy.map((e) => ({
+    ...e,
+    result: e.result ?? {
+      imported: [],
+      skipped: [],
+      totals: e.totals,
+    },
+  }));
+  writeJson(HISTORY_KEY, migrated);
+  return migrated;
 }
 
-export function pushImportHistory(entry: Omit<ImportHistoryEntry, "id">): ImportHistoryEntry {
+export function getImportById(id: string): ImportHistoryEntry | null {
+  return getImportHistory().find((e) => e.id === id) ?? null;
+}
+
+export function pushImportHistory(
+  entry: Omit<ImportHistoryEntry, "id">
+): ImportHistoryEntry {
   const full: ImportHistoryEntry = { ...entry, id: crypto.randomUUID() };
   const next = [full, ...getImportHistory()].slice(0, MAX_HISTORY);
   writeJson(HISTORY_KEY, next);
@@ -64,13 +111,15 @@ export function upsertImportedLeads(
     qualityState: "clean" | "needs_review";
     confidence: number;
   }>,
-  fileName: string
+  fileName: string,
+  importId?: string
 ): StoredLead[] {
   const stamped = records.map(({ record, qualityState, confidence }) => ({
     ...record,
     id: crypto.randomUUID(),
     importedAt: new Date().toISOString(),
     sourceFile: fileName,
+    importId,
     qualityState,
     confidence,
   }));

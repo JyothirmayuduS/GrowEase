@@ -251,11 +251,15 @@ export default function DashboardPage() {
             </div>
           ) : (
             <EnterpriseTable
-              headers={["File", "Imported", "Review", "When"]}
+              headers={["File", "Imported", "Review", "When", ""]}
               rows={recentImports.map((h) => [
-                <span key={h.id} className="font-medium">
+                <Link
+                  key={h.id}
+                  href={`/imports/${h.id}`}
+                  className="font-medium text-[var(--ge-accent)] hover:underline"
+                >
                   {h.fileName}
-                </span>,
+                </Link>,
                 <span key={`${h.id}-i`} className="font-mono tabular-nums">
                   {h.totals.imported}
                 </span>,
@@ -268,6 +272,13 @@ export default function DashboardPage() {
                   hour: "2-digit",
                   minute: "2-digit",
                 }),
+                <Link
+                  key={`${h.id}-open`}
+                  href={`/imports/${h.id}`}
+                  className="inline-flex items-center gap-1 text-[12px] font-semibold text-[var(--ge-accent)] hover:underline"
+                >
+                  View results <ArrowRight className="h-3.5 w-3.5" />
+                </Link>,
               ])}
             />
           )}

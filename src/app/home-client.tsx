@@ -166,7 +166,7 @@ export function HomeClient() {
       setLoaderStatus("Completed");
       setImportResult(result);
 
-      // Persist for Dashboard / Manage Leads (browser workspace).
+      // Persist for Dashboard / Manage Leads / Import history results.
       const enriched = result.imported.map((record) => {
         const quality = assessRecordQuality(record);
         return {
@@ -177,8 +177,7 @@ export function HomeClient() {
           confidence: quality.confidence,
         };
       });
-      upsertImportedLeads(enriched, parsedCsv.fileName);
-      pushImportHistory({
+      const historyEntry = pushImportHistory({
         fileName: parsedCsv.fileName,
         importedAt: new Date().toISOString(),
         totals: result.totals,
@@ -194,7 +193,9 @@ export function HomeClient() {
             : Math.round(
                 enriched.reduce((s, e) => s + e.confidence, 0) / enriched.length
               ),
+        result,
       });
+      upsertImportedLeads(enriched, parsedCsv.fileName, historyEntry.id);
 
       showToast({
         variant: "success",

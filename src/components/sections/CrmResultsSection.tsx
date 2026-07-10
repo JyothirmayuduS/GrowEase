@@ -73,6 +73,8 @@ interface CrmResultsSectionProps {
   fileName: string;
   result: ImportApiResponse;
   onBack: () => void;
+  /** Override the primary back / import-another button label. */
+  backLabel?: string;
 }
 
 type Filter = RowState | "all";
@@ -111,7 +113,12 @@ function formatSkippedRaw(raw: Record<string, string>): string {
     .join(" · ");
 }
 
-export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectionProps) {
+export function CrmResultsSection({
+  fileName,
+  result,
+  onBack,
+  backLabel = "Import another",
+}: CrmResultsSectionProps) {
   const { showToast } = useToast();
   const { total, imported, skipped } = result.totals;
 
@@ -237,7 +244,7 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
                 className="ge-btn-secondary inline-flex w-full items-center justify-center gap-1.5 sm:w-auto"
               >
                 <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
-                Import another
+                {backLabel}
               </button>
               <button
                 type="button"
