@@ -27,13 +27,18 @@ const RESULTS_COL_KEYS = [
   "__status",
   "name",
   "email",
-  "country",
-  "mobile",
+  "country_code",
+  "mobile_without_country_code",
   "company",
   "city",
   "state",
+  "country",
   "lead_owner",
-  "crm_stage",
+  "crm_status",
+  "data_source",
+  "possession_time",
+  "description",
+  "created_at",
   "crm_note",
 ] as const;
 
@@ -42,14 +47,19 @@ const RESULTS_DEFAULTS: Record<string, number> = {
   __status: 180,
   name: 150,
   email: 150,
-  country: 150,
-  mobile: 150,
+  country_code: 100,
+  mobile_without_country_code: 150,
   company: 150,
-  city: 150,
-  state: 150,
+  city: 120,
+  state: 120,
+  country: 120,
   lead_owner: 150,
-  crm_stage: 150,
-  crm_note: 250,
+  crm_status: 160,
+  data_source: 140,
+  possession_time: 140,
+  description: 200,
+  created_at: 180,
+  crm_note: 300,
 };
 
 const FIELD_REASON_LABEL: Partial<Record<keyof CrmLeadRecord, string>> = {
@@ -178,7 +188,7 @@ export function CrmResultsSection({
   const { widths, resize, reset, stickyLeft } = useColumnWidths(
     colKeys,
     RESULTS_DEFAULTS,
-    `ge-results-cols:v2`
+    `ge-results-cols:v3`
   );
 
   const totalWidth = useMemo(
@@ -331,13 +341,18 @@ export function CrmResultsSection({
                       {(
                         [
                           ["email", "Email"],
-                          ["country", "Country"],
-                          ["mobile", "Mobile"],
+                          ["country_code", "Country Code"],
+                          ["mobile_without_country_code", "Mobile"],
                           ["company", "Company"],
                           ["city", "City"],
                           ["state", "State"],
-                          ["lead_owner", "Lead owner"],
-                          ["crm_stage", "CRM stage"],
+                          ["country", "Country"],
+                          ["lead_owner", "Lead Owner"],
+                          ["crm_status", "CRM Status"],
+                          ["data_source", "Data Source"],
+                          ["possession_time", "Possession Time"],
+                          ["description", "Description"],
+                          ["created_at", "Created At"],
                           ["crm_note", "CRM Note"],
                         ] as const
                       ).map(([key, label], i, arr) => (
@@ -406,14 +421,14 @@ export function CrmResultsSection({
                           <Td width={widths.email}>
                             <FieldValue value={record.email} issue={emailIssue?.message} mono />
                           </Td>
-                          <Td width={widths.country}>
+                          <Td width={widths.country_code}>
                             <FieldValue
                               value={record.country_code}
                               issue={codeIssue?.message}
                               mono
                             />
                           </Td>
-                          <Td width={widths.mobile}>
+                          <Td width={widths.mobile_without_country_code}>
                             <FieldValue
                               value={record.mobile_without_country_code}
                               issue={mobileIssue?.message}
@@ -429,15 +444,30 @@ export function CrmResultsSection({
                           <Td width={widths.state}>
                             <FieldValue value={record.state} mono />
                           </Td>
+                          <Td width={widths.country}>
+                            <FieldValue value={record.country} mono />
+                          </Td>
                           <Td width={widths.lead_owner}>
                             <FieldValue value={record.lead_owner} mono />
                           </Td>
-                          <Td width={widths.crm_stage} className="text-[13px] text-[var(--ge-text)]">
+                          <Td width={widths.crm_status} className="text-[13px] text-[var(--ge-text)]">
                             {record.crm_status ? (
                                 formatCrmStage(record.crm_status)
                             ) : (
                               <span className="text-[var(--ge-text-muted)]">—</span>
                             )}
+                          </Td>
+                          <Td width={widths.data_source}>
+                            <FieldValue value={record.data_source} mono />
+                          </Td>
+                          <Td width={widths.possession_time}>
+                            <FieldValue value={record.possession_time} mono />
+                          </Td>
+                          <Td width={widths.description}>
+                            <FieldValue value={record.description} />
+                          </Td>
+                          <Td width={widths.created_at}>
+                            <FieldValue value={record.created_at} mono />
                           </Td>
                           <Td last width={widths.crm_note}>
                             <FieldValue value={record.crm_note} />
