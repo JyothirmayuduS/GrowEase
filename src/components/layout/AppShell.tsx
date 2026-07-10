@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
+
 import { Sidebar } from "@/components/layout/Sidebar";
 import { cn } from "@/lib/utils";
 
@@ -10,10 +13,62 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, showSidebar = true, className }: AppShellProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--ge-page-bg)]">
-      {showSidebar && <Sidebar />}
+      {/* Desktop Sidebar (hidden on mobile) */}
+      {showSidebar && (
+        <div className="hidden md:flex h-full shrink-0">
+          <Sidebar />
+        </div>
+      )}
+
+      {/* Mobile Drawer Sidebar Overlay */}
+      {showSidebar && sidebarOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setSidebarOpen(false)}
+          />
+          {/* Sidebar container */}
+          <div className="relative flex w-[240px] max-w-xs flex-1 flex-col bg-[#141414] focus:outline-none">
+            {/* Close button */}
+            <div className="absolute right-2 top-2 z-50">
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
+                aria-label="Close sidebar"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            {/* Sidebar component inside drawer */}
+            <div className="h-full w-full [&_aside]:w-full [&_aside]:border-none">
+              <Sidebar />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Area */}
       <div className={cn("flex min-h-0 min-w-0 flex-1 flex-col", className)}>
+        {/* Mobile Header Bar */}
+        {showSidebar && (
+          <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#2a2a2a] bg-[#141414] px-4 text-white md:hidden">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 hover:bg-white/10"
+              aria-label="Open sidebar"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <span className="text-sm font-semibold tracking-tight">GrowEasy</span>
+            <div className="w-9" /> {/* Spacer */}
+          </header>
+        )}
+
         <main className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</main>
       </div>
     </div>

@@ -16,6 +16,7 @@ import { pushImportHistory, upsertImportedLeads } from "@/lib/store/import-histo
 import type { ImportApiResponse } from "@/lib/types/crm";
 import type { AppView, ParsedCsv } from "@/lib/types/app";
 import { assessRecordQuality } from "@/lib/validation/record-quality";
+import { AlertCircle } from "lucide-react";
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -24,6 +25,7 @@ function wait(ms: number): Promise<void> {
 export function HomeClient() {
   const { showToast } = useToast();
   const [view, setView] = useState<AppView>("upload");
+  const [dbConnected, setDbConnected] = useState<boolean | null>(null);
   const [parsedCsv, setParsedCsv] = useState<ParsedCsv | null>(null);
   const [importResult, setImportResult] = useState<ImportApiResponse | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
@@ -37,9 +39,16 @@ export function HomeClient() {
   const parseRunId = useRef(0);
   const importInFlight = useRef(false);
 
-  // Warm serverless functions on cold open so the first upload is snappier.
+  // Warm serverless functions on cold open and check Supabase health.
   useEffect(() => {
-    void fetch("/api/health", { cache: "no-store" }).catch(() => undefined);
+    fetch("/api/health", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        setDbConnected(data.databaseConnected ?? false);
+      })
+      .catch(() => {
+        setDbConnected(false);
+      });
   }, []);
 
   // After Drive / OneDrive OAuth redirect back to Lead Sources
@@ -296,6 +305,15 @@ export function HomeClient() {
 
   return (
     <AppShell>
+      {dbConnected === false && (
+        <div className="mx-6 mt-6 flex items-center gap-3 rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3.5 text-sm text-rose-400">
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <div className="flex-1">
+            <span className="font-semibold text-rose-300">Supabase Disconnected:</span> Your environment keys could not establish a connection to the database. Lead uploads will not be saved in the cloud.
+          </div>
+        </div>
+      )}
+
       {view === "upload" && <CsvUploadSection onFileSelect={handleFileSelect} />}
 
       {view === "preview" && parsedCsv && (
