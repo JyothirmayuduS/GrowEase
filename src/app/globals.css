@@ -377,10 +377,13 @@
   }
 
   @media (max-width: 767px) {
+    .ge-results-table thead,
+    .ge-results-table thead *,
     .ge-results-table th,
     .ge-results-table td {
       position: static !important;
       left: auto !important;
+      top: auto !important;
     }
   }
 
