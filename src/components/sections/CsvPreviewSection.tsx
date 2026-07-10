@@ -225,7 +225,7 @@ export function CsvPreviewSection({
                         columnKey="#"
                         width={widths["#"]}
                         onResize={resize}
-                        className="ge-col-rule sticky z-[12] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        className="ge-col-rule md:sticky z-[12] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
                         style={{ left: leftHash }}
                       >
                         #
@@ -235,7 +235,7 @@ export function CsvPreviewSection({
                         columnKey="__status"
                         width={widths.__status}
                         onResize={resize}
-                        className="ge-col-rule sticky z-[12] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        className="ge-col-rule md:sticky z-[12] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
                         style={{ left: leftStatus }}
                       >
                         Status
@@ -245,7 +245,7 @@ export function CsvPreviewSection({
                         columnKey={stickyHeader}
                         width={widths[stickyHeader] ?? 160}
                         onResize={resize}
-                        className="ge-col-rule sticky z-[12] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        className="ge-col-rule md:sticky z-[12] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
                         style={{ left: leftFirst }}
                       >
                         {stickyHeader}
@@ -312,7 +312,7 @@ export function CsvPreviewSection({
                         >
                           <td
                             className={cn(
-                              "ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3 py-2.5 align-top font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
+                              "ge-col-rule md:sticky z-[1] bg-[var(--ge-card)] px-3 py-2.5 align-top font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
                               edge
                             )}
                             style={{ ...colStyle(widths["#"]), left: leftHash }}
@@ -320,7 +320,7 @@ export function CsvPreviewSection({
                             {index + 1}
                           </td>
                           <td
-                            className="ge-col-rule sticky z-[1] overflow-visible bg-[var(--ge-card)] px-3 py-2.5 align-top group-hover:bg-[var(--ge-panel)]"
+                            className="ge-col-rule md:sticky z-[1] overflow-visible bg-[var(--ge-card)] px-3 py-2.5 align-top group-hover:bg-[var(--ge-panel)]"
                             style={{ ...colStyle(widths.__status), left: leftStatus }}
                           >
                             <RowStateBadge
@@ -330,7 +330,7 @@ export function CsvPreviewSection({
                             />
                           </td>
                           <td
-                            className="ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3 py-2.5 align-top group-hover:bg-[var(--ge-panel)]"
+                            className="ge-col-rule md:sticky z-[1] bg-[var(--ge-card)] px-3 py-2.5 align-top group-hover:bg-[var(--ge-panel)]"
                             style={{
                               ...colStyle(widths[stickyHeader] ?? 160),
                               left: leftFirst,

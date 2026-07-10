@@ -313,7 +313,7 @@ export function CrmResultsSection({
                         columnKey="#"
                         width={widths["#"]}
                         onResize={resize}
-                        className="ge-col-rule sticky z-[2] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
+                        className="ge-col-rule md:sticky z-[2] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
                         style={{ left: leftHash }}
                       >
                         #
@@ -323,7 +323,7 @@ export function CrmResultsSection({
                         columnKey="__status"
                         width={widths.__status}
                         onResize={resize}
-                        className="ge-col-rule sticky z-[2] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
+                        className="ge-col-rule md:sticky z-[2] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
                         style={{ left: leftStatus }}
                       >
                         Status
@@ -333,7 +333,7 @@ export function CrmResultsSection({
                         columnKey="name"
                         width={widths.name}
                         onResize={resize}
-                        className="ge-col-rule sticky z-[2] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
+                        className="ge-col-rule md:sticky z-[2] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
                         style={{ left: leftName }}
                       >
                         Name
@@ -394,7 +394,7 @@ export function CrmResultsSection({
                         >
                           <td
                             className={cn(
-                              "ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3.5 py-2.5 align-top font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
+                              "ge-col-rule md:sticky z-[1] bg-[var(--ge-card)] px-3.5 py-2.5 align-top font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
                               edge
                             )}
                             style={{ ...colStyle(widths["#"]), left: leftHash }}
@@ -402,13 +402,13 @@ export function CrmResultsSection({
                             {index + 1}
                           </td>
                           <td
-                            className="ge-col-rule sticky z-[1] overflow-visible bg-[var(--ge-card)] px-3.5 py-2.5 align-top group-hover:bg-[var(--ge-panel)]"
+                            className="ge-col-rule md:sticky z-[1] overflow-visible bg-[var(--ge-card)] px-3.5 py-2.5 align-top group-hover:bg-[var(--ge-panel)]"
                             style={{ ...colStyle(widths.__status), left: leftStatus }}
                           >
                             <RowStateBadge state={state} variant="plain" reasons={reasons} />
                           </td>
                           <td
-                            className="ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3.5 py-2.5 align-top text-[13px] font-semibold group-hover:bg-[var(--ge-panel)]"
+                            className="ge-col-rule md:sticky z-[1] bg-[var(--ge-card)] px-3.5 py-2.5 align-top text-[13px] font-semibold group-hover:bg-[var(--ge-panel)]"
                             style={{ ...colStyle(widths.name), left: leftName }}
                           >
                             <FieldValue
