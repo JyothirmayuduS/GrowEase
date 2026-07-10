@@ -17,8 +17,27 @@ The hard part is **field mapping under messy, unseen headers** — not CSV parsi
 4. **Mapping survives weird input** — prompts + server sanitize + heuristic fallback for Facebook / Zoho / WhatsApp / typo / RE project nicknames.
 5. **Deploy is clickable** — Vercel config, long `maxDuration` on import, health probe for cold starts.
 
+## App routes
+
+| Path | Page |
+|------|------|
+| `/` | Redirects to Dashboard |
+| `/dashboard` | Pipeline overview + import history |
+| `/lead-sources` | AI CSV importer (upload → preview → results) |
+| `/leads` | Manage Leads directory |
+| `/leads/generate` | Campaigns / demand gen |
+| `/leads/engage` | Outreach queue |
+| `/settings/team` | Team members |
+| `/settings/crm-fields` | CRM schema & enums |
+| `/settings/api` | Health + API docs |
+| `/integrations/ads` | Ad accounts |
+| `/integrations/whatsapp` | WhatsApp |
+| `/integrations/tele-calling` | Tele calling |
+| `/business` | Business center |
+
 ## Features
 
+- Full sidebar routing with pathname-active nav
 - Upload → Preview → Confirm → AI Results (required gating)
 - Column-name independence (map by meaning, not header equality)
 - Enum synonym normalization (`Hot Lead` → `GOOD_LEAD_FOLLOW_UP`, `LOD` → `leads_on_demand`, …)
