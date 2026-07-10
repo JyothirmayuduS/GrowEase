@@ -46,6 +46,7 @@ export async function POST(request: Request) {
           const result = await runServerImportPipeline(
             body.headers,
             body.rows,
+            body.fileName,
             (update) => {
               const event: ImportStreamEvent = {
                 type: "progress",

@@ -3,6 +3,7 @@ import { getStatusForProgress } from "@/lib/import-progress";
 import { extractBatch } from "@/lib/ai/extract-batch";
 import { DuplicateDetectionService } from "@/lib/services/DuplicateDetectionService";
 import type { ImportApiResponse } from "@/lib/types/crm";
+import { storeImportResultInSupabase } from "@/lib/supabase";
 
 export interface ImportProgressUpdate {
   percent: number;
@@ -18,6 +19,7 @@ function wait(ms: number): Promise<void> {
 export async function runServerImportPipeline(
   headers: string[],
   rows: Record<string, string>[],
+  filename?: string,
   onProgress?: (update: ImportProgressUpdate) => void
 ): Promise<ImportApiResponse> {
   const batchSize = DEFAULT_BATCH_SIZE;
@@ -75,6 +77,13 @@ export async function runServerImportPipeline(
   emit(98, totalBatches);
   await wait(500);
   emit(100, totalBatches);
+
+  // Store in Supabase database
+  try {
+    await storeImportResultInSupabase(filename || "imported_leads.csv", imported, skipped);
+  } catch (dbError) {
+    console.error("Supabase storage error:", dbError);
+  }
 
   return {
     imported,
