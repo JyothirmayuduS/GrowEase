@@ -376,6 +376,14 @@
     border-spacing: 0;
   }
 
+  @media (max-width: 767px) {
+    .ge-results-table th,
+    .ge-results-table td {
+      position: static !important;
+      left: auto !important;
+    }
+  }
+
   .ge-results-table th,
   .ge-results-table td {
     border-bottom: 1px solid var(--ge-border);
