@@ -537,3 +537,9 @@
     animation: none;
   }
 }
+  /* Disable sticky offsets on non-xl viewports since sticky columns are xl:sticky */
+  @media (max-width: 1279px) {
+    .ge-col-rule {
+      left: auto !important;
+    }
+  }
