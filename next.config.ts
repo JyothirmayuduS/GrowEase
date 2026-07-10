@@ -6,6 +6,12 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   devIndicators: false,
   ...(isDockerBuild ? { output: "standalone" as const } : {}),
+  eslint: {
+    ignoreDuringBuilds: isDockerBuild,
+  },
+  typescript: {
+    ignoreBuildErrors: isDockerBuild,
+  },
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },
