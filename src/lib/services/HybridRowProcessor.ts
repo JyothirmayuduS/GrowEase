@@ -95,9 +95,8 @@ export function hybridProcessRecord(
   // ─── STEP 1: Extract emails (row-wide) ───────────────────────────────────
   const emailResult = extractEmailsFromRow(rawRow);
   const primaryEmail = emailResult.primaryEmail;
-  if (emailResult.extraEmails.length > 0) {
-    noteExtraEmails.push(...emailResult.extraEmails);
-  }
+  // User explicitly requested to DISCARD extra emails and NOT add them to the CRM note.
+
   if (!primaryEmail && emailResult.invalidEmailCandidates.length > 0) {
     warnings.push({
       code: "INVALID_EMAIL",
@@ -112,10 +111,7 @@ export function hybridProcessRecord(
   const countryContext = String(aiRecord.country ?? aiRecord.country_code ?? "").trim();
   const phoneResult = extractPhonesFromRow(rawRow, countryContext);
   const primaryPhone = phoneResult.primaryPhone;
-
-  if (phoneResult.extraPhones.length > 0) {
-    noteExtraPhones.push(...phoneResult.extraPhones);
-  }
+  // User explicitly requested to DISCARD extra phones and NOT add them to the CRM note.
 
   // Warn if country code was inferred from country context
   if (primaryPhone && !primaryPhone.countryCode && phoneResult.inferredCountryCode) {

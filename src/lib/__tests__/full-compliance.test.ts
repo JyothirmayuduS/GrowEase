@@ -904,20 +904,21 @@ describe("hybridProcessRecord — integration", () => {
     expect(record.crm_note).toContain("Unknown Campaign");
   });
 
-  it("extra email in row → goes to crm_note", () => {
+  it("extra email in row → discarded (user request)", () => {
+    const aiRecord = { email: "primary@example.com" };
     const rawRow = {
-      email: "primary@example.com",
-      backup_email: "backup@example.com",
+      mail1: "primary@example.com",
+      mail2: "backup@example.com",
     };
     const { record } = hybridProcessRecord(
-      { email: "primary@example.com" },
+      aiRecord as Partial<CrmLeadRecord>,
       rawRow
     );
     expect(record.email).toBe("primary@example.com");
-    expect(record.crm_note).toContain("backup@example.com");
+    expect(record.crm_note).not.toContain("backup@example.com");
   });
 
-  it("extra phone in row → goes to crm_note", () => {
+  it("extra phone in row → discarded (user request)", () => {
     const rawRow = {
       email: "test@example.com",
       mobile: "9876543210|9000112233",
@@ -926,6 +927,7 @@ describe("hybridProcessRecord — integration", () => {
       { email: "test@example.com" },
       rawRow
     );
-    expect(record.crm_note).toContain("Extra phones");
+    expect(record.crm_note).not.toContain("Extra phones");
+    expect(record.crm_note).not.toContain("9000112233");
   });
 });
