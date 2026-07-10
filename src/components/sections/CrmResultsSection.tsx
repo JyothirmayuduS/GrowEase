@@ -295,7 +295,7 @@ export function CrmResultsSection({
               <div className="ge-table-scroll overflow-x-auto">
                 <table
                   className="ge-results-table table-fixed"
-                  style={{ width: totalWidth, minWidth: "100%" }}
+                  style={{ width: totalWidth }}
                 >
                   <caption className="sr-only">
                     Import results. {summary.clean} clean, {summary.needsReview} need review,{" "}

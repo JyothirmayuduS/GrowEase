@@ -212,7 +212,7 @@ export function CsvPreviewSection({
               <div className="ge-table-scroll relative min-h-0 flex-1 overflow-auto">
                 <table
                   className="ge-results-table table-fixed text-left"
-                  style={{ width: totalWidth, minWidth: "100%" }}
+                  style={{ width: totalWidth }}
                 >
                   <caption className="sr-only">
                     CSV preview with row quality. {summary.clean} clean, {summary.needsReview} need
