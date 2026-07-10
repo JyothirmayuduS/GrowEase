@@ -1,0 +1,141 @@
+/**
+ * GrowEasy design tokens — Phase 1
+ *
+ * Single source of truth for surfaces, text, borders, semantic roles,
+ * typography, spacing, and radius. Light + dark via `:root` / `.dark`.
+ *
+ * Contrast notes (unverified by automated audit — Phase 5):
+ * Semantic tint + foreground pairs were chosen for ~AA on normal text
+ * by eye / known pairings. Run axe/Lighthouse before calling them done.
+ */
+
+:root {
+  /* ── Surfaces (3 levels) ───────────────────────────────────────── */
+  --ge-page: #fafaf9; /* page canvas */
+  --ge-panel: #f5f5f4; /* recessed panels, table chrome, strip bg */
+  --ge-card: #ffffff; /* elevated cards / tables */
+
+  /* ── Text ─────────────────────────────────────────────────────── */
+  --ge-text: #18181b; /* primary */
+  --ge-text-secondary: #52525b; /* secondary */
+  --ge-text-muted: #a1a1aa; /* muted / labels */
+
+  /* ── Borders ───────────────────────────────────────────────────── */
+  --ge-border: #e7e5e4; /* default */
+  --ge-border-strong: #d6d3d1; /* strong / interactive */
+
+  /* ── Semantic: accent ──────────────────────────────────────────── */
+  --ge-accent: #2563eb;
+  --ge-accent-hover: #1d4ed8;
+  --ge-accent-fg: #ffffff; /* on solid accent */
+  --ge-accent-tint: #eff4ff; /* soft bg */
+  --ge-accent-on-tint: #1d4ed8; /* text on tint — target AA */
+
+  /* ── Semantic: warning ─────────────────────────────────────────── */
+  --ge-warning: #b45309;
+  --ge-warning-tint: #fef3e2;
+  --ge-warning-on-tint: #92400e; /* darker than brand amber for AA on tint */
+  --ge-warning-border: #f5c878;
+
+  /* ── Semantic: danger ──────────────────────────────────────────── */
+  --ge-danger: #b42318;
+  --ge-danger-tint: #fef2f1;
+  --ge-danger-on-tint: #912018;
+  --ge-danger-border: #fecaca;
+
+  /* ── Semantic: success ─────────────────────────────────────────── */
+  --ge-success: #0f7a5c;
+  --ge-success-tint: #e8f6ef;
+  --ge-success-on-tint: #0b5c45;
+  --ge-success-border: #a7f3d0;
+
+  /* ── Focus ─────────────────────────────────────────────────────── */
+  --ge-focus-ring: var(--ge-accent);
+
+  /* ── Typography ────────────────────────────────────────────────── */
+  /* Faces are loaded in layout.tsx as CSS variables:
+     --font-display (Space Grotesk), --font-sans (Inter), --font-mono (JetBrains Mono) */
+  --ge-font-display: var(--font-display), "Space Grotesk", system-ui, sans-serif;
+  --ge-font-body: var(--font-sans), Inter, system-ui, sans-serif;
+  --ge-font-data: var(--font-mono), "JetBrains Mono", ui-monospace, monospace;
+  /* Two weights only */
+  --ge-weight-regular: 400;
+  --ge-weight-bold: 600;
+
+  /* Type scale (rem) */
+  --ge-text-xs: 0.6875rem; /* 11px — uppercase labels */
+  --ge-text-sm: 0.8125rem; /* 13px — body UI */
+  --ge-text-md: 0.875rem; /* 14px — secondary body */
+  --ge-text-lg: 1rem; /* 16px — emphasis */
+  --ge-text-xl: 1.1875rem; /* 19px — page titles (display) */
+  --ge-text-2xl: 1.625rem; /* 26px — stat values (display) */
+
+  /* ── Spacing (4px base) ────────────────────────────────────────── */
+  --ge-space-0: 0;
+  --ge-space-1: 0.25rem; /* 4 */
+  --ge-space-2: 0.5rem; /* 8 */
+  --ge-space-3: 0.75rem; /* 12 */
+  --ge-space-4: 1rem; /* 16 */
+  --ge-space-5: 1.25rem; /* 20 */
+  --ge-space-6: 1.5rem; /* 24 */
+  --ge-space-8: 2rem; /* 32 */
+  --ge-space-10: 2.5rem; /* 40 */
+  --ge-space-12: 3rem; /* 48 */
+
+  /* ── Radius ────────────────────────────────────────────────────── */
+  --ge-radius-sm: 0.3125rem; /* 5 — badges */
+  --ge-radius-md: 0.5rem; /* 8 — buttons, inputs */
+  --ge-radius-lg: 0.625rem; /* 10 — stats strip */
+  --ge-radius-xl: 0.75rem; /* 12 — cards */
+
+  /* ── Motion ────────────────────────────────────────────────────── */
+  --ge-duration: 150ms;
+  --ge-ease: ease;
+
+  /* Legacy aliases — keep existing screens from breaking until Phase 3 */
+  --ge-page-bg: var(--ge-page);
+  --ge-surface: var(--ge-panel);
+  --brand-blue: var(--ge-accent);
+  --brand-blue-hover: var(--ge-accent-hover);
+}
+
+.dark {
+  --ge-page: #09090b;
+  --ge-panel: #18181b;
+  --ge-card: #27272a;
+
+  --ge-text: #fafafa;
+  --ge-text-secondary: #a1a1aa;
+  --ge-text-muted: #71717a;
+
+  --ge-border: #3f3f46;
+  --ge-border-strong: #52525b;
+
+  --ge-accent: #3b82f6;
+  --ge-accent-hover: #60a5fa;
+  --ge-accent-fg: #ffffff;
+  --ge-accent-tint: #172554;
+  --ge-accent-on-tint: #93c5fd;
+
+  --ge-warning: #fbbf24;
+  --ge-warning-tint: #422006;
+  --ge-warning-on-tint: #fcd34d;
+  --ge-warning-border: #854d0e;
+
+  --ge-danger: #f87171;
+  --ge-danger-tint: #450a0a;
+  --ge-danger-on-tint: #fca5a5;
+  --ge-danger-border: #7f1d1d;
+
+  --ge-success: #34d399;
+  --ge-success-tint: #064e3b;
+  --ge-success-on-tint: #6ee7b7;
+  --ge-success-border: #065f46;
+
+  --ge-focus-ring: var(--ge-accent);
+
+  --ge-page-bg: var(--ge-page);
+  --ge-surface: var(--ge-panel);
+  --brand-blue: var(--ge-accent);
+  --brand-blue-hover: var(--ge-accent-hover);
+}

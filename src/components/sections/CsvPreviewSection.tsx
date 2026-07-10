@@ -1,106 +1,333 @@
 "use client";
 
-import { useRef } from "react";
-import { FileSpreadsheet, X } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { FileSpreadsheet, RefreshCw } from "lucide-react";
 
+import { ACCEPTED_TYPES } from "@/components/features/csv-import/FileDropzone";
 import { ImportPanel } from "@/components/layout/ImportPanel";
 import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";
-import { VirtualTable } from "@/components/ui/virtual-table";
-import { ACCEPTED_TYPES } from "@/components/features/csv-import/FileDropzone";
+import { FieldFlagBadge, RowStateBadge } from "@/components/ui/row-state-badge";
+import { QualityStrip } from "@/components/ui/quality-strip";
 import type { ParsedCsv } from "@/lib/types/app";
+import {
+  assessPreviewRows,
+  summarizeAssessments,
+  type RowState,
+} from "@/lib/validation/row-quality";
+import { cn } from "@/lib/utils";
 
 interface CsvPreviewSectionProps {
   data: ParsedCsv;
   onConfirm: () => void;
   onBack: () => void;
   onReplaceFile?: (file: File) => void;
+  errorMessage?: string | null;
+  onRetry?: () => void;
+  confirmDisabled?: boolean;
 }
+
+type Filter = RowState | "all";
 
 export function CsvPreviewSection({
   data,
   onConfirm,
   onBack,
   onReplaceFile,
+  errorMessage,
+  onRetry,
+  confirmDisabled = false,
 }: CsvPreviewSectionProps) {
   const { headers, rows } = data;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [filter, setFilter] = useState<Filter>("all");
+
+  const assessments = useMemo(() => assessPreviewRows(headers, rows), [headers, rows]);
+  const summary = useMemo(() => summarizeAssessments(assessments), [assessments]);
+
+  const indexed = useMemo(
+    () =>
+      rows.map((row, index) => ({
+        row,
+        index,
+        assessment: assessments[index],
+      })),
+    [rows, assessments]
+  );
+
+  const visible = useMemo(() => {
+    if (filter === "all") return indexed;
+    return indexed.filter((item) => item.assessment.state === filter);
+  }, [indexed, filter]);
+
+  const stickyHeader = headers[0] ?? "Column";
+  const otherHeaders = headers.slice(1);
 
   return (
     <LeadSourcesPage
       title="Preview import"
-      description={`${rows.length} rows in ${data.fileName} — review before uploading.`}
+      description={`${summary.total} rows · ${headers.length} columns`}
     >
       <ImportPanel
         footer={
           <>
+            <p className="mr-auto hidden max-w-md text-[12px] leading-snug text-[var(--ge-text-secondary)] lg:block">
+              AI maps your columns to 14 CRM fields — flagged rows will ask you to confirm a value
+              first.
+            </p>
             <button type="button" onClick={onBack} className="ge-btn-secondary">
               Cancel
             </button>
             <button
               type="button"
-              disabled={headers.length === 0 || rows.length === 0}
+              disabled={headers.length === 0 || rows.length === 0 || confirmDisabled}
               onClick={onConfirm}
-              className="ge-btn-primary"
+              className="ge-btn-primary ge-btn-primary-lg"
             >
-              Confirm Import
+              {confirmDisabled ? "Importing…" : "Confirm import"}
             </button>
           </>
         }
       >
-        <div className="flex h-full min-h-0 flex-1 flex-col gap-4">
-          <div className="flex shrink-0 items-center justify-between gap-3 rounded-lg border border-[var(--ge-border)] bg-[var(--ge-surface)] px-4 py-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#e8f5ef]">
-                <FileSpreadsheet className="h-4 w-4 text-[#2d6a4f]" />
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-[var(--ge-text)]">{data.fileName}</p>
-                <p className="text-[12px] text-[var(--ge-text-muted)]">
-                  {(data.fileSize / 1024).toFixed(2)} KB · {rows.length} rows
-                </p>
-              </div>
-            </div>
-            {onReplaceFile && (
-              <>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept={ACCEPTED_TYPES}
-                  className="hidden"
-                  onChange={(e) => {
-                    const selected = e.target.files?.[0];
-                    e.target.value = "";
-                    if (selected instanceof File) onReplaceFile(selected);
-                  }}
-                />
+        <div className="flex h-full min-h-0 flex-1 flex-col gap-3 overflow-hidden bg-[var(--ge-page)] p-0 sm:gap-4">
+          {errorMessage && (
+            <div
+              role="alert"
+              className="flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-[var(--ge-radius-md)] border border-[var(--ge-danger-border)] bg-[var(--ge-danger-tint)] px-4 py-3 text-[13px] text-[var(--ge-danger-on-tint)]"
+            >
+              <p>
+                <span className="font-semibold">Import failed.</span> {errorMessage}
+              </p>
+              {onRetry && (
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  aria-label="Replace file"
-                  className="shrink-0 rounded-lg p-1.5 text-[var(--ge-text-muted)] hover:bg-white hover:text-[var(--ge-text)]"
+                  onClick={onRetry}
+                  className="shrink-0 rounded-[var(--ge-radius-md)] bg-[var(--ge-danger)] px-3 py-1.5 text-[12px] font-semibold text-white"
                 >
-                  <X className="h-4 w-4" />
+                  Retry import
                 </button>
-              </>
-            )}
+              )}
+            </div>
+          )}
+
+          {/* File meta */}
+          <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] px-4 py-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--ge-radius-md)] bg-[var(--ge-success-tint)]">
+                <FileSpreadsheet className="h-5 w-5 text-[var(--ge-success)]" aria-hidden="true" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[14px] font-semibold text-[var(--ge-text)]">
+                  {data.fileName}
+                </p>
+                <p className="text-[12px] text-[var(--ge-text-muted)]">
+                  {(data.fileSize / 1024).toFixed(2)} KB
+                </p>
+              </div>
+              {onReplaceFile && (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ACCEPTED_TYPES}
+                    className="hidden"
+                    onChange={(e) => {
+                      const selected = e.target.files?.[0];
+                      e.target.value = "";
+                      if (selected instanceof File) onReplaceFile(selected);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    aria-label="Replace CSV file"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-[var(--ge-radius-md)] border border-[var(--ge-border-strong)] bg-[var(--ge-card)] px-3 py-1.5 text-[12px] font-semibold text-[var(--ge-text-secondary)] hover:text-[var(--ge-text)]"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+                    Replace
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-[var(--ge-border)]">
+          <QualityStrip summary={summary} active={filter} onSelect={setFilter} />
+
+          {/* Table */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)]">
             {headers.length === 0 ? (
-              <p className="p-12 text-center text-sm text-[var(--ge-text-muted)]">
-                No columns found in this CSV file.
-              </p>
+              <EmptyPreview />
+            ) : visible.length === 0 ? (
+              <div className="flex h-40 items-center justify-center px-6 text-center text-[13px] text-[var(--ge-text-secondary)]">
+                No rows match this filter. Choose another quality state above.
+              </div>
             ) : (
-              <VirtualTable
-                headers={headers}
-                rows={rows}
-                maxHeight="calc(100vh - 320px)"
-                variant="groweasy"
-              />
+              <div className="ge-table-scroll relative min-h-0 flex-1 overflow-auto">
+                <table className="w-full min-w-max border-collapse text-left">
+                  <caption className="sr-only">
+                    CSV preview with row quality. {summary.clean} clean, {summary.needsReview} need
+                    review, {summary.skipped} skipped.
+                  </caption>
+                  <thead className="sticky top-0 z-10">
+                    <tr className="border-b border-[var(--ge-border)] bg-[var(--ge-panel)]">
+                      <th
+                        scope="col"
+                        className="sticky left-0 z-[12] w-14 bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                      >
+                        #
+                      </th>
+                      <th
+                        scope="col"
+                        className="sticky left-14 z-[12] min-w-[200px] max-w-[260px] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)] shadow-[1px_0_0_var(--ge-border)]"
+                      >
+                        Status
+                      </th>
+                      <th
+                        scope="col"
+                        className="sticky left-[16.5rem] z-[12] min-w-[160px] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)] shadow-[1px_0_0_var(--ge-border)]"
+                      >
+                        {stickyHeader}
+                      </th>
+                      {otherHeaders.map((header) => (
+                        <th
+                          key={header}
+                          scope="col"
+                          className="whitespace-nowrap px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visible.map(({ row, index, assessment }) => {
+                      if (assessment.state === "skipped") {
+                        return (
+                          <tr
+                            key={index}
+                            className="border-b border-[var(--ge-border)] bg-[var(--ge-card)]"
+                          >
+                            <td
+                              colSpan={headers.length + 2}
+                              className="border-l-[3px] border-l-[var(--ge-danger)] px-4 py-3 text-[13px]"
+                            >
+                              <span className="inline-flex items-center gap-2">
+                                <RowStateBadge
+                                  state="skipped"
+                                  variant="plain"
+                                  reason={assessment.flags[0]?.label}
+                                />
+                                <span className="text-[var(--ge-text-secondary)]">
+                                  Row {index + 1}
+                                </span>
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      const fieldFlags = assessment.flags.filter(
+                        (f) => f.header && headers.includes(f.header)
+                      );
+                      // One primary field pill only — first flag that maps to a real column.
+                      const primaryFieldFlag = fieldFlags[0];
+                      // Status always carries the human-readable reason (plain text).
+                      // Field pill points at the cell; do not omit reason from Status.
+                      const statusReason =
+                        assessment.state === "needs_review"
+                          ? assessment.flags[0]?.label
+                          : undefined;
+
+                      const edge =
+                        assessment.state === "needs_review"
+                          ? "border-l-[3px] border-l-[var(--ge-warning)]"
+                          : "border-l-[3px] border-l-transparent";
+
+                      return (
+                        <tr
+                          key={index}
+                          className="group border-b border-[var(--ge-border)] bg-[var(--ge-card)] hover:bg-[var(--ge-panel)]"
+                        >
+                          <td
+                            className={cn(
+                              "sticky left-0 z-[1] bg-[var(--ge-card)] px-3 py-2.5 font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
+                              edge
+                            )}
+                          >
+                            {index + 1}
+                          </td>
+                          <td className="sticky left-14 z-[1] max-w-[260px] bg-[var(--ge-card)] px-3 py-2.5 shadow-[1px_0_0_var(--ge-border)] group-hover:bg-[var(--ge-panel)]">
+                            <RowStateBadge
+                              state={assessment.state}
+                              variant="plain"
+                              reason={statusReason}
+                            />
+                          </td>
+                          <td className="sticky left-[16.5rem] z-[1] max-w-[220px] bg-[var(--ge-card)] px-3 py-2.5 shadow-[1px_0_0_var(--ge-border)] group-hover:bg-[var(--ge-panel)]">
+                            <PreviewCell
+                              value={row[stickyHeader] ?? ""}
+                              flag={
+                                primaryFieldFlag?.header === stickyHeader
+                                  ? primaryFieldFlag
+                                  : undefined
+                              }
+                            />
+                          </td>
+                          {otherHeaders.map((header) => (
+                            <td key={header} className="max-w-[220px] px-3 py-2.5">
+                              <PreviewCell
+                                value={row[header] ?? ""}
+                                flag={
+                                  primaryFieldFlag?.header === header
+                                    ? primaryFieldFlag
+                                    : undefined
+                                }
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </div>
       </ImportPanel>
     </LeadSourcesPage>
+  );
+}
+
+function PreviewCell({
+  value,
+  flag,
+}: {
+  value: string;
+  flag?: { label: string };
+}) {
+  const trimmed = value.trim();
+  if (!trimmed && !flag) {
+    return <span className="text-[12.5px] italic text-[var(--ge-text-muted)]">—</span>;
+  }
+  return (
+    <div className="flex min-w-0 flex-col gap-1">
+      {trimmed ? (
+        <span className="truncate font-mono text-[12.5px] text-[var(--ge-text)]" title={trimmed}>
+          {trimmed}
+        </span>
+      ) : null}
+      {flag ? <FieldFlagBadge label={flag.label} /> : null}
+    </div>
+  );
+}
+
+function EmptyPreview() {
+  return (
+    <div className="flex h-48 flex-col items-center justify-center px-6 text-center">
+      <p className="text-[14px] font-semibold text-[var(--ge-text)]">Add a CSV to get started</p>
+      <p className="mt-1 max-w-sm text-[13px] text-[var(--ge-text-secondary)]">
+        This file has no columns. Replace it with a CSV that includes a header row.
+      </p>
+    </div>
   );
 }

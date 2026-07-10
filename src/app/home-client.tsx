@@ -4,24 +4,23 @@ import { useCallback, useRef, useState } from "react";
 
 import { animateParseProgress } from "@/lib/animate-parse-progress";
 import { streamImport } from "@/lib/api/stream-import";
-import { parseCsvFile } from "@/lib/csv/parse-csv";
+import { parseCsvViaApi, validateCsvFileClient } from "@/lib/csv/client-upload";
 import { AppShell } from "@/components/layout/AppShell";
 import { AiProcessingSection } from "@/components/sections/AiProcessingSection";
+import { ImportProcessingSection } from "@/components/sections/ImportProcessingSection";
 import { CrmResultsSection } from "@/components/sections/CrmResultsSection";
 import { CsvPreviewSection } from "@/components/sections/CsvPreviewSection";
 import { LandingUploadSection } from "@/components/sections/LandingUploadSection";
+import { useToast } from "@/components/ui/toast";
 import type { ImportApiResponse } from "@/lib/types/crm";
 import type { AppView, ParsedCsv } from "@/lib/types/app";
-
-function isCsvFile(file: File): boolean {
-  return file.name.toLowerCase().endsWith(".csv");
-}
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function HomeClient() {
+  const { showToast } = useToast();
   const [view, setView] = useState<AppView>("landing");
   const [parsedCsv, setParsedCsv] = useState<ParsedCsv | null>(null);
   const [importResult, setImportResult] = useState<ImportApiResponse | null>(null);
@@ -30,71 +29,94 @@ export function HomeClient() {
   const [loaderStatus, setLoaderStatus] = useState("Reading CSV");
   const [loaderFileName, setLoaderFileName] = useState("");
   const [loaderSessionKey, setLoaderSessionKey] = useState("parse");
+  const [importBusy, setImportBusy] = useState(false);
 
   const importRunId = useRef(0);
   const parseRunId = useRef(0);
+  const importInFlight = useRef(false);
 
-  const handleFileSelect = useCallback(async (file: File) => {
-    if (file instanceof Event || !(file instanceof File)) return;
+  const handleFileSelect = useCallback(
+    async (file: File) => {
+      if (file instanceof Event || !(file instanceof File)) return;
 
-    if (!isCsvFile(file)) {
-      alert("Please upload a valid CSV file.");
-      return;
-    }
-
-    const runId = parseRunId.current + 1;
-    parseRunId.current = runId;
-    importRunId.current += 1;
-    const sessionKey = `parse-${runId}`;
-
-    setImportError(null);
-    setImportResult(null);
-    setLoaderFileName(file.name);
-    setLoaderSessionKey(sessionKey);
-    setLoaderProgress(0);
-    setLoaderStatus("Reading CSV");
-    setView("importing");
-
-    try {
-      const [parsed] = await Promise.all([
-        parseCsvFile(file),
-        animateParseProgress((percent, status) => {
-          if (runId !== parseRunId.current) return;
-          setLoaderProgress(percent);
-          setLoaderStatus(status);
-        }),
-      ]);
-
-      if (runId !== parseRunId.current) return;
-
-      if (parsed.rows.length === 0 && parsed.headers.length === 0) {
-        alert("The CSV file appears to be empty.");
-        setView("landing");
+      const clientError = validateCsvFileClient(file);
+      if (clientError) {
+        showToast({
+          variant: "error",
+          title: "Invalid file",
+          description: clientError,
+        });
         return;
       }
 
-      setLoaderProgress(100);
-      setLoaderStatus("Opening GrowEasy");
-      await wait(600);
+      const runId = parseRunId.current + 1;
+      parseRunId.current = runId;
+      importRunId.current += 1;
+      const sessionKey = `parse-${runId}`;
 
-      if (runId !== parseRunId.current) return;
-      setParsedCsv(parsed);
-      setView("preview");
-    } catch {
-      if (runId !== parseRunId.current) return;
-      alert("Failed to parse CSV. Please check the file and try again.");
-      setView("landing");
-    }
-  }, []);
+      setImportError(null);
+      setImportResult(null);
+      setLoaderFileName(file.name);
+      setLoaderSessionKey(sessionKey);
+      setLoaderProgress(0);
+      setLoaderStatus("Reading CSV");
+      setView("importing");
+
+      try {
+        const [parsed] = await Promise.all([
+          parseCsvViaApi(file),
+          animateParseProgress((percent, status) => {
+            if (runId !== parseRunId.current) return;
+            setLoaderProgress(percent);
+            setLoaderStatus(status);
+          }),
+        ]);
+
+        if (runId !== parseRunId.current) return;
+
+        setLoaderProgress(100);
+        setLoaderStatus("Opening GrowEasy");
+        await wait(400);
+
+        if (runId !== parseRunId.current) return;
+        setParsedCsv({
+          fileName: parsed.fileName,
+          fileSize: parsed.fileSize,
+          headers: parsed.headers,
+          rows: parsed.rows,
+        });
+        showToast({
+          variant: "success",
+          title: "CSV ready for review",
+          description: `${parsed.rowCount} rows and ${parsed.columnCount} columns parsed from ${parsed.fileName}. Confirm when ready to import.`,
+        });
+        setView("preview");
+      } catch (error) {
+        if (runId !== parseRunId.current) return;
+        const message =
+          error instanceof Error ? error.message : "Could not read this CSV. Check the file format and try again.";
+        showToast({
+          variant: "error",
+          title: "Parse failed",
+          description: message,
+        });
+        setView("landing");
+      }
+    },
+    [showToast]
+  );
 
   const runImport = useCallback(async () => {
-    if (!parsedCsv) return;
+    if (!parsedCsv || importInFlight.current) return;
+
+    importInFlight.current = true;
+    setImportBusy(true);
 
     const runId = importRunId.current + 1;
     importRunId.current = runId;
     setImportError(null);
     setLoaderProgress(0);
-    setLoaderStatus("Reading CSV");
+    setLoaderStatus("Mapping rows with AI…");
     setLoaderFileName(parsedCsv.fileName);
     setLoaderSessionKey(`import-${runId}`);
     setView("importing");
@@ -122,7 +144,7 @@ export function HomeClient() {
         (percent, status) => {
           if (runId !== importRunId.current) return;
           targetProgress = percent;
-          setLoaderStatus(status);
+          setLoaderStatus(status || `Mapping ${parsedCsv.rows.length} rows with AI…`);
         }
       );
 
@@ -136,25 +158,47 @@ export function HomeClient() {
 
       setLoaderStatus("Completed");
       setImportResult(result);
+      showToast({
+        variant: "success",
+        title: "Import complete",
+        description: `${result.totals.imported} of ${result.totals.total} leads mapped into GrowEasy CRM.${
+          result.totals.skipped > 0 ? ` ${result.totals.skipped} rows were skipped.` : ""
+        }`,
+      });
       await wait(800);
       setView("results");
     } catch (error) {
       if (runId !== importRunId.current) return;
       const message = error instanceof Error ? error.message : "Import failed";
       setImportError(message);
+      showToast({
+        variant: "error",
+        title: "Import failed",
+        description: message,
+      });
       setView("preview");
     } finally {
       window.clearInterval(smoothTimer);
+      importInFlight.current = false;
+      setImportBusy(false);
     }
-  }, [parsedCsv]);
+  }, [parsedCsv, showToast]);
 
   const handleConfirmImport = () => {
+    if (importInFlight.current || !parsedCsv) return;
+    showToast({
+      variant: "success",
+      title: "Starting AI import",
+      description: `Mapping ${parsedCsv.rows.length} rows with AI…`,
+    });
     void runImport();
   };
 
   const handleReset = () => {
     importRunId.current += 1;
     parseRunId.current += 1;
+    importInFlight.current = false;
+    setImportBusy(false);
     setParsedCsv(null);
     setImportResult(null);
     setImportError(null);
@@ -165,11 +209,14 @@ export function HomeClient() {
     setView("landing");
   };
 
+  const isParseImporting = view === "importing" && loaderSessionKey.startsWith("parse");
+  const isAiImporting = view === "importing" && loaderSessionKey.startsWith("import");
+
   if (view === "landing") {
     return <LandingUploadSection onFileSelect={handleFileSelect} />;
   }
 
-  if (view === "importing") {
+  if (isParseImporting) {
     return (
       <div className="h-screen overflow-hidden bg-white dark:bg-slate-950">
         <AiProcessingSection
@@ -177,37 +224,36 @@ export function HomeClient() {
           status={loaderStatus}
           fileName={loaderFileName || undefined}
           sessionKey={loaderSessionKey}
-          variant={loaderSessionKey.startsWith("parse") ? "parse" : "import"}
+          variant="parse"
         />
       </div>
+    );
+  }
+
+  if (isAiImporting) {
+    return (
+      <AppShell>
+        <ImportProcessingSection
+          progress={loaderProgress}
+          status={loaderStatus}
+          fileName={loaderFileName || undefined}
+        />
+      </AppShell>
     );
   }
 
   return (
     <AppShell>
       {view === "preview" && parsedCsv && (
-        <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-          {importError && (
-            <div className="flex shrink-0 items-center justify-between gap-4 border-b border-red-200 bg-red-50 px-6 py-3 text-sm text-red-800">
-              <p>
-                <strong>Import failed:</strong> {importError}
-              </p>
-              <button
-                type="button"
-                onClick={handleConfirmImport}
-                className="shrink-0 rounded-md bg-red-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-800"
-              >
-                Retry
-              </button>
-            </div>
-          )}
-          <CsvPreviewSection
-            data={parsedCsv}
-            onConfirm={handleConfirmImport}
-            onBack={handleReset}
-            onReplaceFile={handleFileSelect}
-          />
-        </div>
+        <CsvPreviewSection
+          data={parsedCsv}
+          onConfirm={handleConfirmImport}
+          onBack={handleReset}
+          onReplaceFile={handleFileSelect}
+          errorMessage={importError}
+          onRetry={handleConfirmImport}
+          confirmDisabled={importBusy}
+        />
       )}
 
       {view === "results" && parsedCsv && importResult && (

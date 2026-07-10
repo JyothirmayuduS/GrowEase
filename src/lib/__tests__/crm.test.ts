@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
 
 import { cleanKey, normalizeCsv } from "@/lib/csv/normalize";
+import { heuristicExtractBatch } from "@/lib/ai/heuristic-extract";
+import {
+  applyMultiContactRules,
+  splitEmails,
+  splitPhones,
+} from "@/lib/validation/contact-fields";
 import {
   getSkipReason,
   hasContactInfo,
+  normalizeAiBatchRecords,
   normalizeCrmStatus,
   normalizeDataSource,
   sanitizeCrmRecord,
@@ -46,9 +53,111 @@ describe("crm-record validation", () => {
     expect(getSkipReason(record)).toBeNull();
   });
 
-  it("escapes newlines in notes", () => {
-    const record = sanitizeCrmRecord({ crm_note: "line1\nline2", email: "a@b.com" });
+  it("escapes newlines in notes and other text fields", () => {
+    const record = sanitizeCrmRecord({
+      crm_note: "line1\nline2",
+      description: "a\nb",
+      name: "Jane\nDoe",
+      email: "a@b.com",
+    });
     expect(record.crm_note).toBe("line1\\nline2");
+    expect(record.description).toBe("a\\nb");
+    expect(record.name).toBe("Jane\\nDoe");
+  });
+
+  it("blanks unparseable created_at", () => {
+    const record = sanitizeCrmRecord({
+      email: "a@b.com",
+      created_at: "not-a-date",
+    });
+    expect(record.created_at).toBe("");
+  });
+
+  it("keeps parseable created_at", () => {
+    const record = sanitizeCrmRecord({
+      email: "a@b.com",
+      created_at: "2026-05-13 14:20:48",
+    });
+    expect(record.created_at).toBe("2026-05-13 14:20:48");
+  });
+
+  it("appends extra emails to crm_note", () => {
+    const record = sanitizeCrmRecord({
+      email: "a@b.com; c@d.com",
+      crm_note: "hello",
+    });
+    expect(record.email).toBe("a@b.com");
+    expect(record.crm_note).toContain("Extra emails");
+    expect(record.crm_note).toContain("c@d.com");
+  });
+
+  it("appends extra phones to crm_note", () => {
+    const record = sanitizeCrmRecord({
+      email: "a@b.com",
+      mobile_without_country_code: "9848012345; 9000000000",
+    });
+    expect(record.mobile_without_country_code).toBe("9848012345");
+    expect(record.crm_note).toContain("Extra phones");
+    expect(record.crm_note).toContain("9000000000");
+  });
+
+  it("pads short AI batch records to expected count", () => {
+    const normalized = normalizeAiBatchRecords([{ email: "a@b.com" }], 3);
+    expect(normalized).toHaveLength(3);
+  });
+
+  it("rejects non-array AI records", () => {
+    expect(() => normalizeAiBatchRecords({}, 2)).toThrow(/records array/);
+  });
+});
+
+describe("contact-fields helpers", () => {
+  it("splits emails", () => {
+    expect(splitEmails("a@b.com; c@d.com")).toEqual(["a@b.com", "c@d.com"]);
+  });
+
+  it("splits phones", () => {
+    expect(splitPhones("111; 222")).toEqual(["111", "222"]);
+  });
+
+  it("applyMultiContactRules keeps first email", () => {
+    const result = applyMultiContactRules({
+      email: "a@b.com | c@d.com",
+      mobile_without_country_code: "",
+      country_code: "",
+      crm_note: "",
+    });
+    expect(result.email).toBe("a@b.com");
+    expect(result.crm_note).toContain("c@d.com");
+  });
+});
+
+describe("heuristicExtractBatch multi-contact", () => {
+  it("maps Facebook-style headers and keeps extra emails in note", () => {
+    const records = heuristicExtractBatch(
+      ["full_name", "email_address", "phone"],
+      [
+        {
+          full_name: "Sarah",
+          email_address: "sarah@work.com; sarah.personal@gmail.com",
+          phone: "9876543211",
+        },
+      ]
+    );
+    const sanitized = sanitizeCrmRecord(records[0]);
+    expect(sanitized.name).toBe("Sarah");
+    expect(sanitized.email).toBe("sarah@work.com");
+    expect(sanitized.crm_note).toContain("sarah.personal@gmail.com");
+    expect(getSkipReason(sanitized)).toBeNull();
+  });
+
+  it("skips rows with no contact after mapping", () => {
+    const records = heuristicExtractBatch(
+      ["Lead Name", "Company"],
+      [{ "Lead Name": "Ghost", Company: "EmptyCo" }]
+    );
+    const sanitized = sanitizeCrmRecord(records[0]);
+    expect(getSkipReason(sanitized)).not.toBeNull();
   });
 });
 

@@ -4,19 +4,35 @@ export async function streamImport(
   payload: ImportApiRequest,
   onProgress: (percent: number, status: string) => void
 ): Promise<ImportApiResponse> {
-  const response = await fetch("/api/import", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  let response: Response;
+  try {
+    response = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    throw new Error(
+      "Could not reach the import server. Make sure npm run dev is running, then hard-refresh the page and try again."
+    );
+  }
 
   if (!response.ok) {
-    const err = await response.json().catch(() => ({ error: "" }));
+    const raw = await response.text();
+    let message = "";
+    try {
+      const err = JSON.parse(raw) as { error?: string };
+      message = err.error ?? "";
+    } catch {
+      if (raw.includes("Internal Server Error")) {
+        message = "Server error — restart with npm run dev and hard-refresh the page.";
+      }
+    }
     const fallback =
       response.status >= 500
-        ? "Server error — run npm run dev:reset and try again."
+        ? "Server error — restart with npm run dev and hard-refresh the page."
         : "Import request failed";
-    throw new Error(err.error || fallback);
+    throw new Error(message || fallback);
   }
 
   if (!response.body) {

@@ -62,7 +62,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Turbopack dev server (recommended) |
+| `npm run dev` | Webpack dev server with clean `.next` (recommended) |
 | `npm run dev:stable` | Production build + start (most stable) |
 | `npm run dev:reset` | Clear cache and restart dev |
 | `npm run build` | Production build |
@@ -85,9 +85,28 @@ OPENAI_MODEL=gpt-4o-mini
 
 ## API
 
+### `POST /api/parse`
+
+Multipart upload (`file` field). Server-side Papa Parse + validation. **No AI.**
+
+- Rejects non-`.csv`, empty, header-only, and files over **5 MB**
+- Handles UTF-8 BOM and quoted fields (commas/newlines)
+
+**Response:**
+```json
+{
+  "fileName": "leads.csv",
+  "fileSize": 1234,
+  "headers": ["name", "email"],
+  "rows": [{ "name": "John", "email": "john@example.com" }],
+  "rowCount": 1,
+  "columnCount": 2
+}
+```
+
 ### `POST /api/import`
 
-Accepts parsed CSV data, runs AI extraction in batches, streams NDJSON progress events.
+Accepts **already-parsed** CSV JSON (from preview). Runs AI extraction in batches, streams NDJSON progress. Called only after the user clicks **Confirm import**.
 
 **Request:**
 ```json
@@ -107,7 +126,20 @@ Accepts parsed CSV data, runs AI extraction in batches, streams NDJSON progress 
 
 ### `GET /api/health`
 
-Returns `{ status: "ok", openai: true|false }`
+Returns `{ status: "ok", aiConfigured: true|false, provider: "openai"|"anthropic"|"heuristic" }`
+
+## Flow (required gating)
+
+1. **Upload** — client checks `.csv` + 5 MB; server re-validates via `/api/parse`
+2. **Preview** — raw table only; **no AI**
+3. **Confirm import** — only then calls `/api/import` (button disabled while in flight)
+4. **Results** — imported / needs review / skipped
+
+## Architecture notes (AI batching)
+
+- Rows are processed in batches (`DEFAULT_BATCH_SIZE`, typically ~15)
+- Each batch: LLM JSON → schema length check → repair prompt once if malformed → sanitize (enums, dates, multi-contact → `crm_note`, newline escape) → skip rule
+- Transient LLM failures retry with exponential backoff; quota/key failures fall back to deterministic header mapping (still sanitized)
 
 ## CRM Fields
 
@@ -141,6 +173,8 @@ Test files in `public/samples/`:
 
 - `facebook-leads.csv` — Facebook-style column names
 - `google-ads-export.csv` — Google Ads export format
+- `quoted-fields.csv` — commas/newlines inside quotes
+- `header-only.csv` — should return 400 from `/api/parse`
 
 ## Testing
 
@@ -151,7 +185,7 @@ npm run test
 ## Docker
 
 ```bash
-cp .env.example .env.local   # add OPENAI_API_KEY
+cp .env.example .env.local   # add ANTHROPIC_API_KEY or OPENAI_API_KEY
 docker compose up --build
 ```
 
@@ -176,6 +210,7 @@ npm start
 ```
 src/
 ├── app/
+│   ├── api/parse/route.ts     # Multipart CSV parse (no AI)
 │   ├── api/import/route.ts    # AI import API (streaming)
 │   ├── api/health/route.ts
 │   ├── home-client.tsx        # Main app state machine
@@ -183,12 +218,12 @@ src/
 ├── components/
 │   ├── sections/              # Upload, Preview, Processing, Results
 │   ├── features/csv-import/   # Loader, dropzone
-│   └── ui/                    # VirtualTable, Button, etc.
+│   └── ui/
 └── lib/
-    ├── ai/                    # OpenAI prompts, batch extraction, pipeline
-    ├── csv/                   # Parse + normalize
-    ├── validation/            # CRM record validation
-    └── types/                 # CRM + app types
+    ├── ai/                    # Prompts, batch extraction, pipeline
+    ├── csv/                   # Client upload + server parse buffer
+    ├── validation/            # CRM + contact-field rules
+    └── types/
 ```
 
 ## Submission Checklist

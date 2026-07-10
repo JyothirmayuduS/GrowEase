@@ -21,7 +21,7 @@ export function CloudStorageButtons({ variant = "default" }: CloudStorageButtons
             key={id}
             type="button"
             aria-label={`Import from ${label}`}
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-[#e8e8e8] bg-white shadow-sm transition-all hover:border-[#d0d0d0] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-blue)] focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-900"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-[#d5d5d5] bg-white transition-colors hover:border-[#bdbdbd] hover:bg-[#fafafa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1473e6] focus-visible:ring-offset-2 dark:border-slate-600 dark:bg-slate-900"
           >
             <Icon className="h-6 w-6" />
           </button>

@@ -1,5 +1,9 @@
 import { CRM_STATUSES, DATA_SOURCES } from "@/lib/constants/crm";
 import type { CrmLeadRecord, CrmStatus, DataSource } from "@/lib/types/crm";
+import {
+  applyMultiContactRules,
+  escapeNewlines,
+} from "@/lib/validation/contact-fields";
 
 export function emptyCrmRecord(): CrmLeadRecord {
   return {
@@ -43,25 +47,49 @@ export function isValidCreatedAt(value: string): boolean {
   return !Number.isNaN(date.getTime());
 }
 
+function textField(value: unknown): string {
+  return escapeNewlines(String(value ?? "").trim());
+}
+
+/**
+ * Server-side sanitize after AI/heuristic extraction.
+ * Re-validates enums, created_at, multi-contact rules, and newline escaping.
+ */
 export function sanitizeCrmRecord(raw: Partial<CrmLeadRecord>): CrmLeadRecord {
   const base = emptyCrmRecord();
-  const record: CrmLeadRecord = {
+
+  let record: CrmLeadRecord = {
     ...base,
     created_at: String(raw.created_at ?? "").trim(),
-    name: String(raw.name ?? "").trim(),
+    name: textField(raw.name),
     email: String(raw.email ?? "").trim(),
     country_code: String(raw.country_code ?? "").trim(),
     mobile_without_country_code: String(raw.mobile_without_country_code ?? "").trim(),
-    company: String(raw.company ?? "").trim(),
-    city: String(raw.city ?? "").trim(),
-    state: String(raw.state ?? "").trim(),
-    country: String(raw.country ?? "").trim(),
-    lead_owner: String(raw.lead_owner ?? "").trim(),
+    company: textField(raw.company),
+    city: textField(raw.city),
+    state: textField(raw.state),
+    country: textField(raw.country),
+    lead_owner: textField(raw.lead_owner),
     crm_status: normalizeCrmStatus(raw.crm_status),
-    crm_note: String(raw.crm_note ?? "").trim().replace(/\n/g, "\\n"),
+    crm_note: textField(raw.crm_note),
     data_source: normalizeDataSource(raw.data_source),
-    possession_time: String(raw.possession_time ?? "").trim(),
-    description: String(raw.description ?? "").trim().replace(/\n/g, "\\n"),
+    possession_time: textField(raw.possession_time),
+    description: textField(raw.description),
+  };
+
+  const contacts = applyMultiContactRules({
+    email: record.email,
+    mobile_without_country_code: record.mobile_without_country_code,
+    country_code: record.country_code,
+    crm_note: record.crm_note,
+  });
+
+  record = {
+    ...record,
+    email: contacts.email,
+    mobile_without_country_code: contacts.mobile_without_country_code.replace(/\D/g, ""),
+    country_code: contacts.country_code,
+    crm_note: escapeNewlines(contacts.crm_note),
   };
 
   if (record.created_at && !isValidCreatedAt(record.created_at)) {
@@ -76,4 +104,24 @@ export function getSkipReason(record: CrmLeadRecord): string | null {
     return "Record has neither email nor mobile number";
   }
   return null;
+}
+
+/** Validate AI batch shape: must be an array with one entry per input row (padded if short). */
+export function normalizeAiBatchRecords(
+  records: unknown,
+  expectedCount: number
+): Partial<CrmLeadRecord>[] {
+  if (!Array.isArray(records)) {
+    throw new Error("AI response missing records array");
+  }
+
+  const list = records.map((item) =>
+    item && typeof item === "object" ? (item as Partial<CrmLeadRecord>) : {}
+  );
+
+  while (list.length < expectedCount) {
+    list.push({});
+  }
+
+  return list.slice(0, expectedCount);
 }

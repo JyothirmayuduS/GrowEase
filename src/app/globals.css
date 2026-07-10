@@ -1,15 +1,59 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "../styles/tokens.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--ge-font-body);
+  --font-mono: var(--ge-font-data);
+  --font-heading: var(--ge-font-display);
+
+  /* GrowEasy semantic tokens → Tailwind utilities (bg-ge-page, text-ge-warning, …) */
+  --color-ge-page: var(--ge-page);
+  --color-ge-panel: var(--ge-panel);
+  --color-ge-card: var(--ge-card);
+  --color-ge-text: var(--ge-text);
+  --color-ge-text-secondary: var(--ge-text-secondary);
+  --color-ge-text-muted: var(--ge-text-muted);
+  --color-ge-border: var(--ge-border);
+  --color-ge-border-strong: var(--ge-border-strong);
+  --color-ge-accent: var(--ge-accent);
+  --color-ge-accent-hover: var(--ge-accent-hover);
+  --color-ge-accent-fg: var(--ge-accent-fg);
+  --color-ge-accent-tint: var(--ge-accent-tint);
+  --color-ge-accent-on-tint: var(--ge-accent-on-tint);
+  --color-ge-warning: var(--ge-warning);
+  --color-ge-warning-tint: var(--ge-warning-tint);
+  --color-ge-warning-on-tint: var(--ge-warning-on-tint);
+  --color-ge-warning-border: var(--ge-warning-border);
+  --color-ge-danger: var(--ge-danger);
+  --color-ge-danger-tint: var(--ge-danger-tint);
+  --color-ge-danger-on-tint: var(--ge-danger-on-tint);
+  --color-ge-danger-border: var(--ge-danger-border);
+  --color-ge-success: var(--ge-success);
+  --color-ge-success-tint: var(--ge-success-tint);
+  --color-ge-success-on-tint: var(--ge-success-on-tint);
+  --color-ge-success-border: var(--ge-success-border);
+
+  --radius-ge-sm: var(--ge-radius-sm);
+  --radius-ge-md: var(--ge-radius-md);
+  --radius-ge-lg: var(--ge-radius-lg);
+  --radius-ge-xl: var(--ge-radius-xl);
+
+  --spacing-ge-1: var(--ge-space-1);
+  --spacing-ge-2: var(--ge-space-2);
+  --spacing-ge-3: var(--ge-space-3);
+  --spacing-ge-4: var(--ge-space-4);
+  --spacing-ge-5: var(--ge-space-5);
+  --spacing-ge-6: var(--ge-space-6);
+  --spacing-ge-8: var(--ge-space-8);
+  --spacing-ge-10: var(--ge-space-10);
+  --spacing-ge-12: var(--ge-space-12);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,22 +93,15 @@
 }
 
 :root {
-  --brand-blue: #1473e6;
-  --brand-blue-hover: #0d66d0;
+  /* shadcn / legacy bridge — semantic values live in tokens.css */
   --brand-red: #eb1000;
   --brand-coral: #f0a890;
   --brand-coral-hover: #e89578;
   --brand-teal: #7dcea0;
-  --brand-border: #e1e1e1;
-  --brand-text: #2c2c2c;
-  --brand-text-muted: #6e6e6e;
-  --brand-surface: #f5f5f5;
-
-  --ge-page-bg: #f4f5f7;
-  --ge-surface: #fafafa;
-  --ge-text: #2c2c2c;
-  --ge-text-muted: #6e6e6e;
-  --ge-border: #e8e8e8;
+  --brand-border: var(--ge-border);
+  --brand-text: var(--ge-text);
+  --brand-text-muted: var(--ge-text-secondary);
+  --brand-surface: var(--ge-panel);
 
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -146,11 +183,232 @@
   }
 }
 
+.font-display {
+  font-family: var(--ge-font-display);
+  font-weight: var(--ge-weight-bold);
+}
+
+.font-mono {
+  font-family: var(--ge-font-data);
+}
+
 @layer components {
   .ge-btn-primary {
-    @apply inline-flex h-10 min-w-[9rem] cursor-pointer items-center justify-center rounded-lg bg-[var(--brand-blue)] px-5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[var(--brand-blue-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-blue)] focus-visible:ring-offset-2 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#b8c9e0] disabled:text-white/80 disabled:opacity-100 disabled:shadow-none;
+    display: inline-flex;
+    height: 2.75rem;
+    min-width: 9.5rem;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--ge-radius-md);
+    background: var(--ge-accent);
+    padding: 0 1.25rem;
+    font-size: var(--ge-text-sm);
+    font-weight: var(--ge-weight-bold);
+    color: var(--ge-accent-fg);
+    transition: background-color var(--ge-duration) var(--ge-ease);
   }
+  .ge-btn-primary:hover {
+    background: var(--ge-accent-hover);
+  }
+  .ge-btn-primary:focus-visible {
+    outline: 2px solid var(--ge-focus-ring);
+    outline-offset: 2px;
+  }
+  .ge-btn-primary:disabled {
+    cursor: not-allowed;
+    background: var(--ge-border-strong);
+    color: var(--ge-text-muted);
+  }
+  .ge-btn-primary-lg {
+    height: 3rem;
+    min-width: 11rem;
+    padding: 0 1.5rem;
+    font-size: var(--ge-text-md);
+  }
+
   .ge-btn-secondary {
-    @apply inline-flex h-10 min-w-[9rem] cursor-pointer items-center justify-center rounded-lg border border-[var(--ge-border)] bg-white px-5 text-sm font-medium text-[var(--ge-text)] shadow-sm transition-all hover:bg-[var(--ge-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-blue)]/30 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200;
+    display: inline-flex;
+    height: 2.75rem;
+    min-width: 9rem;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--ge-radius-md);
+    border: 1px solid var(--ge-border-strong);
+    background: var(--ge-card);
+    padding: 0 1.25rem;
+    font-size: var(--ge-text-sm);
+    font-weight: var(--ge-weight-bold);
+    color: var(--ge-text-secondary);
+    transition: border-color var(--ge-duration) var(--ge-ease), color var(--ge-duration) var(--ge-ease);
+  }
+  .ge-btn-secondary:hover {
+    border-color: var(--ge-text-muted);
+    color: var(--ge-text);
+  }
+  .ge-btn-secondary:focus-visible {
+    outline: 2px solid var(--ge-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* Landing drop zone — grey dotted by default, solid accent on hover/drag */
+  .ge-dropzone {
+    border: 2.5px dotted #757575;
+    background: var(--ge-card);
+    border-radius: var(--ge-radius-md);
+    transition: border-color var(--ge-duration) var(--ge-ease), border-style var(--ge-duration) var(--ge-ease),
+      background-color var(--ge-duration) var(--ge-ease);
+  }
+
+  .ge-dropzone:hover,
+  .ge-dropzone.is-active {
+    border: 2.5px solid var(--ge-accent);
+    background: var(--ge-accent-tint);
+  }
+
+  .dark .ge-dropzone {
+    border-color: var(--ge-border-strong);
+    background: var(--ge-card);
+  }
+
+  .dark .ge-dropzone:hover,
+  .dark .ge-dropzone.is-active {
+    border: 2.5px solid var(--ge-accent);
+    background: var(--ge-accent-tint);
+  }
+
+  /* Horizontal scroll edge affordance for sticky columns */
+  .ge-table-scroll {
+    background:
+      linear-gradient(to right, var(--ge-card) 30%, transparent) left center / 24px 100% no-repeat,
+      linear-gradient(to left, var(--ge-card) 30%, transparent) right center / 24px 100% no-repeat;
+    background-attachment: local, local;
+  }
+
+  @media (max-width: 640px) {
+    .ge-btn-primary,
+    .ge-btn-secondary,
+    .ge-btn-primary-lg {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ge-btn-primary,
+    .ge-btn-secondary,
+    .ge-dropzone {
+      transition: none;
+    }
+  }
+
+  .import-word-loader {
+    color: var(--ge-text-muted);
+    font-weight: 500;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    line-height: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: content-box;
+  }
+
+  .import-word-loader__prefix {
+    color: var(--ge-text);
+    font-weight: 600;
+    white-space: nowrap;
+    letter-spacing: -0.02em;
+  }
+
+  .import-word-loader__words {
+    overflow: hidden;
+    position: relative;
+    height: 48px;
+    min-width: 7.5rem;
+    text-align: left;
+  }
+
+  .import-word-loader__words::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      var(--ge-page-bg) 6%,
+      transparent 26%,
+      transparent 74%,
+      var(--ge-page-bg) 94%
+    );
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .dark .import-word-loader__words::after {
+    background: linear-gradient(#020617 6%, transparent 26%, transparent 74%, #020617 94%);
+  }
+
+  .import-word-loader__word {
+    display: block;
+    height: 48px;
+    padding-left: 10px;
+    color: var(--brand-blue);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    animation: import-word-spin 5s infinite;
+  }
+}
+
+@keyframes import-word-spin {
+  10% {
+    transform: translateY(-102%);
+  }
+  25% {
+    transform: translateY(-100%);
+  }
+  35% {
+    transform: translateY(-202%);
+  }
+  50% {
+    transform: translateY(-200%);
+  }
+  60% {
+    transform: translateY(-302%);
+  }
+  75% {
+    transform: translateY(-300%);
+  }
+  85% {
+    transform: translateY(-402%);
+  }
+  100% {
+    transform: translateY(-400%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .import-word-loader__word {
+    animation: none;
+  }
+}
+
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.toast-enter {
+  animation: toast-enter 0.22s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-enter {
+    animation: none;
   }
 }
