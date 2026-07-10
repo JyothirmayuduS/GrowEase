@@ -247,7 +247,9 @@ describe("C – Date / created_at formats", () => {
       ["name", "email", "created_at"],
       [{ name: "A", email: "a@b.com", created_at: "2026-07-01 10:00:00" }]
     );
-    expect(results[0].created_at).toBe("2026-07-01 10:00:00");
+    // Date is now normalized to ISO 8601
+    expect(results[0].created_at).toMatch(/^2026-07-01/);
+    expect(Number.isNaN(new Date(results[0].created_at).getTime())).toBe(false);
   });
 });
 
@@ -616,31 +618,31 @@ describe("L – Long / oversized values", () => {
 // ─────────────────────────────────────────────────
 describe("M – Status & data_source edge values", () => {
   it("M1: empty status stays empty", () => {
-    expect(normalizeCrmStatus("")).toBe("");
+    expect(normalizeCrmStatus("").value).toBe("");
   });
 
   it("M2: null status stays empty", () => {
-    expect(normalizeCrmStatus(null)).toBe("");
+    expect(normalizeCrmStatus(null).value).toBe("");
   });
 
   it("M3: numeric status (e.g. 1) stays empty", () => {
-    expect(normalizeCrmStatus(1)).toBe("");
+    expect(normalizeCrmStatus(1).value).toBe("");
   });
 
   it("M4: unrecognized status stays empty", () => {
-    expect(normalizeCrmStatus("maybe someday")).toBe("");
+    expect(normalizeCrmStatus("maybe someday").value).toBe("");
   });
 
   it("M5: exact enum value GOOD_LEAD_FOLLOW_UP accepted verbatim", () => {
-    expect(normalizeCrmStatus("GOOD_LEAD_FOLLOW_UP")).toBe("GOOD_LEAD_FOLLOW_UP");
+    expect(normalizeCrmStatus("GOOD_LEAD_FOLLOW_UP").value).toBe("GOOD_LEAD_FOLLOW_UP");
   });
 
   it("M6: exact enum lowercase variant normalised", () => {
-    expect(normalizeCrmStatus("good_lead_follow_up")).toBe("GOOD_LEAD_FOLLOW_UP");
+    expect(normalizeCrmStatus("good_lead_follow_up").value).toBe("GOOD_LEAD_FOLLOW_UP");
   });
 
   it("M7: data_source empty string stays empty", () => {
-    expect(normalizeDataSource("")).toBe("");
+    expect(normalizeDataSource("").value).toBe("");
   });
 
   it("M8: unknown project appended to note, data_source blank", () => {
@@ -653,11 +655,11 @@ describe("M – Status & data_source edge values", () => {
   });
 
   it("M9: data_source case insensitive (MERIDIAN TOWER)", () => {
-    expect(normalizeDataSource("MERIDIAN TOWER")).toBe("meridian_tower");
+    expect(normalizeDataSource("MERIDIAN TOWER").value).toBe("meridian_tower");
   });
 
   it("M10: data_source with leading/trailing spaces normalised", () => {
-    expect(normalizeDataSource("  Eden Park  ")).toBe("eden_park");
+    expect(normalizeDataSource("  Eden Park  ").value).toBe("eden_park");
   });
 });
 

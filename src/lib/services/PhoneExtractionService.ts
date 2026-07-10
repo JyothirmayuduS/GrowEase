@@ -4,6 +4,8 @@
  * Scans ALL cells in a row for valid phone numbers — not just phone/mobile columns.
  * Rejects email addresses, dates, and IDs masquerading as phones.
  * Normalizes numbers to E.164 where possible.
+ *
+ * Uses a well-known country code list for precise CC splitting.
  */
 
 export interface PhoneExtractionResult {
@@ -17,18 +19,53 @@ export interface PhoneExtractionResult {
   inferredCountryCode: string;
 }
 
-// ─────────────────────────────────────────────
-// Phone candidate detection heuristics
-// ─────────────────────────────────────────────
+// ─── Country code list (ordered longest-first to avoid greedy mismatch) ──────
+// Source: ITU-T E.164 - common codes that start with the same digits must be ordered
+// longest first (e.g. +1 vs +1787, +44 vs +441).
+const KNOWN_COUNTRY_CODES = [
+  // 3-digit codes (must check before 2-digit and 1-digit)
+  "1242", "1246", "1264", "1268", "1284", "1340", "1345", "1441",
+  "1473", "1649", "1664", "1670", "1671", "1684", "1721", "1758",
+  "1767", "1784", "1787", "1809", "1868", "1869", "1876", "1939",
+  "212", "213", "216", "218", "220", "221", "222", "223", "224",
+  "225", "226", "227", "228", "229", "230", "231", "232", "233",
+  "234", "235", "236", "237", "238", "239", "240", "241", "242",
+  "243", "244", "245", "246", "247", "248", "249", "250", "251",
+  "252", "253", "254", "255", "256", "257", "258", "260", "261",
+  "262", "263", "264", "265", "266", "267", "268", "269", "291",
+  "297", "298", "299", "350", "351", "352", "353", "354", "355",
+  "356", "357", "358", "359", "370", "371", "372", "373", "374",
+  "375", "376", "377", "378", "380", "381", "382", "385", "386",
+  "387", "389", "420", "421", "423", "500", "501", "502", "503",
+  "504", "505", "506", "507", "508", "509", "590", "591", "592",
+  "593", "594", "595", "596", "597", "598", "599", "670", "672",
+  "673", "674", "675", "676", "677", "678", "679", "680", "681",
+  "682", "683", "685", "686", "687", "688", "689", "690", "691",
+  "692", "850", "852", "853", "855", "856", "880", "886", "960",
+  "961", "962", "963", "964", "965", "966", "967", "968", "970",
+  "971", "972", "973", "974", "975", "976", "977", "992", "993",
+  "994", "995", "996", "998",
+  // 2-digit codes
+  "20", "27", "30", "31", "32", "33", "34", "36", "39",
+  "40", "41", "43", "44", "45", "46", "47", "48", "49",
+  "51", "52", "53", "54", "55", "56", "57", "58",
+  "60", "61", "62", "63", "64", "65", "66",
+  "7",  // Russia/Kazakhstan (1 digit, check below)
+  "81", "82", "84", "86",
+  "90", "91", "92", "93", "94", "95", "98",
+  // 1-digit codes
+  "1",  // NANP — must come after all 1xxx codes
+];
+
+// ─── Email / date guard ───────────────────────────────────────────────────────
 
 const EMAIL_RE = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
 
-/** Date-like strings we should not treat as phone numbers. */
 const DATE_PATTERNS = [
-  /^\d{4}-\d{2}-\d{2}/, // ISO date
-  /^\d{2}\/\d{2}\/\d{4}/, // DD/MM/YYYY or MM/DD/YYYY
-  /^\d{2}-\d{2}-\d{4}/, // DD-MM-YYYY
-  /^\w{3}\s+\d{1,2},?\s+\d{4}/, // Jan 1, 2024
+  /^\d{4}-\d{2}-\d{2}/,
+  /^\d{2}\/\d{2}\/\d{4}/,
+  /^\d{2}-\d{2}-\d{4}/,
+  /^\w{3}\s+\d{1,2},?\s+\d{4}/,
 ];
 
 function looksLikeDate(value: string): boolean {
@@ -39,42 +76,63 @@ function looksLikeEmail(value: string): boolean {
   return EMAIL_RE.test(value.trim());
 }
 
-/** Normalize a raw phone string: remove spaces, dots, parens, dashes (keep + and digits). */
-function normalizePhoneDigits(raw: string): { countryCode: string; number: string } {
-  const cleaned = raw.trim().replace(/[\s\-.()\[\]]/g, "");
+// ─── Phone number parsing ─────────────────────────────────────────────────────
 
-  // International format: +CC followed by local number
-  const intlMatch = cleaned.match(/^\+(\d{1,3})(\d{6,14})$/);
-  if (intlMatch) {
-    return { countryCode: `+${intlMatch[1]}`, number: intlMatch[2] };
+/**
+ * Parse an international-format string (starting with +) into CC and national number.
+ * Uses the known CC list to avoid greedy splitting like +919... → CC=+919.
+ */
+function parseInternationalPhone(cleaned: string): { countryCode: string; number: string } | null {
+  if (!cleaned.startsWith("+")) return null;
+
+  const digits = cleaned.slice(1); // strip leading +
+
+  // Try matching known country codes (longest first)
+  for (const cc of KNOWN_COUNTRY_CODES) {
+    if (digits.startsWith(cc)) {
+      const national = digits.slice(cc.length);
+      if (national.length >= 6 && national.length <= 12) {
+        return { countryCode: `+${cc}`, number: national };
+      }
+    }
   }
 
-  // Format: 00CC followed by local
+  // Fallback: try 1–3 digit CC heuristic
+  for (let ccLen = 3; ccLen >= 1; ccLen--) {
+    const cc = digits.slice(0, ccLen);
+    const national = digits.slice(ccLen);
+    if (/^\d+$/.test(cc) && national.length >= 6 && national.length <= 12) {
+      return { countryCode: `+${cc}`, number: national };
+    }
+  }
+
+  return null;
+}
+
+/** Normalize a raw phone string: remove spaces, dots, parens, dashes (keep + and digits). */
+function normalizePhoneDigits(raw: string): { countryCode: string; number: string } {
+  const cleaned = raw.trim().replace(/[\s\-.()[\]]/g, "");
+
+  // International format: starts with +
+  if (cleaned.startsWith("+")) {
+    const parsed = parseInternationalPhone(cleaned);
+    if (parsed) return parsed;
+  }
+
+  // Format: 00CC followed by local (treat as international)
   const doubleZeroMatch = cleaned.match(/^00(\d{1,3})(\d{6,14})$/);
   if (doubleZeroMatch) {
     return { countryCode: `+${doubleZeroMatch[1]}`, number: doubleZeroMatch[2] };
   }
 
-  // Digits only
+  // Digits only — no country code
   const digitsOnly = cleaned.replace(/\D/g, "");
-
-  // > 10 digits: try to split country code
-  if (digitsOnly.length > 10 && digitsOnly.length <= 15) {
-    const localLen = digitsOnly.length > 12 ? 10 : digitsOnly.length - (digitsOnly.length - 10);
-    const ccDigits = digitsOnly.slice(0, digitsOnly.length - localLen);
-    const localDigits = digitsOnly.slice(-localLen);
-    if (ccDigits.length >= 1 && ccDigits.length <= 3) {
-      return { countryCode: `+${ccDigits}`, number: localDigits };
-    }
-  }
-
   return { countryCode: "", number: digitsOnly };
 }
 
 /** Validate a phone number candidate. */
 function isValidPhone(countryCode: string, number: string): boolean {
   const allDigits = (countryCode.replace(/\D/g, "") + number).length;
-  // Valid total length: 7 to 15 digits (ITU-T E.164)
   return number.length >= 6 && number.length <= 14 && allDigits >= 7 && allDigits <= 15;
 }
 

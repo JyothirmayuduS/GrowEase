@@ -18,6 +18,16 @@ export class CRMNoteBuilder {
     return this.addSection(value);
   }
 
+  /** Add a follow-up note. */
+  addFollowUp(value: string): this {
+    return this.addSection(value);
+  }
+
+  /** Add a comment (alias for remark). */
+  addComment(value: string): this {
+    return this.addSection(value);
+  }
+
   /** Add extra email addresses as a labeled section. */
   addExtraEmails(emails: string[]): this {
     if (emails.length === 0) return this;
@@ -71,8 +81,8 @@ export class CRMNoteBuilder {
   private safeText(value: string): string {
     const check = detectUnsafeContent(value);
     if (check.isUnsafe) return ""; // never put malicious content in notes
-    // Use stripped version for HTML content
-    return check.strippedValue.replace(/\r\n|\n|\r/g, " ").trim();
+    // Use stripped version for HTML content; replace real line breaks with escaped \n
+    return check.strippedValue.replace(/\r\n|\n|\r/g, "\\n").trim();
   }
 
   private addSection(raw: string): this {

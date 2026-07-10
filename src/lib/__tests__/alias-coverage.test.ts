@@ -442,7 +442,9 @@ describe("created_at field aliases", () => {
   for (const [header, label] of dateCases) {
     it(`maps "${header}" → created_at (${label})`, () => {
       const results = extract([header, "email"], [{ [header]: "2026-06-01 09:00:00", email }]);
-      expect(results[0].created_at).toBe("2026-06-01 09:00:00");
+      // Date is now normalized to ISO 8601
+      expect(results[0].created_at).toMatch(/^2026-06-01/);
+      expect(Number.isNaN(new Date(results[0].created_at).getTime())).toBe(false);
     });
   }
 
@@ -540,7 +542,8 @@ describe("full alias-variants.csv scenario", () => {
     expect(results[0].data_source).toBe("sarjapur_plots");
     expect(results[0].possession_time).toBe("Q2 2027");
     expect(results[0].description).toBe("Wants detailed brochure");
-    expect(results[0].created_at).toBe("2026-06-15 08:00:00");
+    // Date is now normalized to ISO 8601
+    expect(results[0].created_at).toMatch(/^2026-06-15/);
     expect(getSkipReason(results[0])).toBeNull();
   });
 });

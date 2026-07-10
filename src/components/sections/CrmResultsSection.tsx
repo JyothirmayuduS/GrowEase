@@ -19,7 +19,7 @@ import {
   type RecordQuality,
 } from "@/lib/validation/record-quality";
 import type { QualitySummary, RowState } from "@/lib/validation/row-quality";
-import { escapeCsvFormulaForExport } from "@/lib/services/SanitizationService";
+import { generateCsv, generateCsvFilename } from "@/lib/services/CsvExportService";
 import { cn } from "@/lib/utils";
 
 const RESULTS_COL_KEYS = [
@@ -88,15 +88,7 @@ type EnrichedLead = {
 };
 
 function recordsToCsv(records: CrmLeadRecord[]): string {
-  const header = CRM_FIELDS.join(",");
-  const lines = records.map((record) =>
-    CRM_FIELDS.map((field) => {
-      const raw = record[field] ?? "";
-      const escaped = escapeCsvFormulaForExport(String(raw));
-      return `"${escaped.replace(/"/g, '""')}"`;
-    }).join(",")
-  );
-  return [header, ...lines].join("\n");
+  return generateCsv(records);
 }
 
 function downloadCsv(content: string, filename: string) {
@@ -172,7 +164,7 @@ export function CrmResultsSection({
   }, [enriched, filter]);
 
   const handleDownload = () => {
-    downloadCsv(recordsToCsv(result.imported), `groweasy-import-${Date.now()}.csv`);
+    downloadCsv(recordsToCsv(result.imported), generateCsvFilename("groweasy-import"));
     showToast({
       variant: "success",
       title: "CSV exported",

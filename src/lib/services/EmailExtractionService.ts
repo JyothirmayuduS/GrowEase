@@ -80,6 +80,7 @@ function extractEmailsFromCell(cellValue: string): { valid: string[]; invalid: s
 /**
  * Scan every cell in a row for email addresses.
  * Returns the first unique valid email as primary, rest as extras.
+ * Also flags values in email-named columns that look like invalid email attempts.
  */
 export function extractEmailsFromRow(
   record: Record<string, string>
@@ -88,8 +89,12 @@ export function extractEmailsFromRow(
   const allValid: string[] = [];
   const allInvalid: string[] = [];
 
-  for (const cellValue of Object.values(record)) {
-    const { valid, invalid } = extractEmailsFromCell(String(cellValue ?? ""));
+  // Email-hinting column names (case-insensitive check later)
+  const EMAIL_HINT_KEYS = /^(email|e_mail|mail|e-mail|primary_email|alternate_email|email_address|email_id|work_email)$/i;
+
+  for (const [key, rawValue] of Object.entries(record)) {
+    const cellValue = String(rawValue ?? "");
+    const { valid, invalid } = extractEmailsFromCell(cellValue);
 
     for (const email of valid) {
       const lower = email.toLowerCase();
@@ -102,6 +107,17 @@ export function extractEmailsFromRow(
     for (const inv of invalid) {
       if (!allInvalid.includes(inv)) {
         allInvalid.push(inv);
+      }
+    }
+
+    // Extra: flag values in email-named columns that have no @ but look email-ish
+    if (valid.length === 0 && invalid.length === 0 && EMAIL_HINT_KEYS.test(key)) {
+      const trimmed = cellValue.trim();
+      // Value looks like it might be an email attempt (has letters, no @, non-empty)
+      if (trimmed && !trimmed.includes("@") && /[a-z]/i.test(trimmed) && trimmed.length > 3) {
+        if (!allInvalid.includes(trimmed)) {
+          allInvalid.push(trimmed);
+        }
       }
     }
   }

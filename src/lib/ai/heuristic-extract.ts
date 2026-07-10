@@ -340,11 +340,11 @@ function mapRow(headers: string[], row: Record<string, string>): Partial<CrmLead
         note = appendToCrmNote(note, `Extra emails: ${emails.slice(1).join(", ")}`);
       }
     } else if (field === "crm_status") {
-      record.crm_status = normalizeCrmStatus(value);
+      record.crm_status = normalizeCrmStatus(value).value;
     } else if (field === "data_source") {
-      const mapped = normalizeDataSource(value);
-      if (mapped) {
-        record.data_source = mapped;
+      const result = normalizeDataSource(value);
+      if (result.value) {
+        record.data_source = result.value;
       } else {
         note = appendToCrmNote(note, `Source: ${value}`);
       }

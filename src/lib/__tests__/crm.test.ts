@@ -33,13 +33,13 @@ describe("normalizeCsv", () => {
 
 describe("crm-record validation", () => {
   it("normalizes crm_status to allowed values only", () => {
-    expect(normalizeCrmStatus("good lead follow up")).toBe("GOOD_LEAD_FOLLOW_UP");
-    expect(normalizeCrmStatus("INVALID")).toBe("");
+    expect(normalizeCrmStatus("good lead follow up").value).toBe("GOOD_LEAD_FOLLOW_UP");
+    expect(normalizeCrmStatus("INVALID").value).toBe("");
   });
 
   it("normalizes data_source to allowed values only", () => {
-    expect(normalizeDataSource("Meridian Tower")).toBe("meridian_tower");
-    expect(normalizeDataSource("facebook")).toBe("");
+    expect(normalizeDataSource("Meridian Tower").value).toBe("meridian_tower");
+    expect(normalizeDataSource("facebook").value).toBe("");
   });
 
   it("skips records without email or mobile", () => {
@@ -78,7 +78,9 @@ describe("crm-record validation", () => {
       email: "a@b.com",
       created_at: "2026-05-13 14:20:48",
     });
-    expect(record.created_at).toBe("2026-05-13 14:20:48");
+    // Date is now normalized to ISO 8601
+    expect(record.created_at).toMatch(/^2026-05-13/);
+    expect(Number.isNaN(new Date(record.created_at).getTime())).toBe(false);
   });
 
   it("appends extra emails to crm_note", () => {
@@ -252,19 +254,19 @@ describe("heuristicExtractBatch multi-contact", () => {
 
 describe("status and source synonym coverage", () => {
   it("maps common agent status slang", () => {
-    expect(normalizeCrmStatus("callback")).toBe("GOOD_LEAD_FOLLOW_UP");
-    expect(normalizeCrmStatus("DNC")).toBe("DID_NOT_CONNECT");
-    expect(normalizeCrmStatus("wrong number")).toBe("BAD_LEAD");
-    expect(normalizeCrmStatus("booked")).toBe("SALE_DONE");
-    expect(normalizeCrmStatus("Hot Lead")).toBe("GOOD_LEAD_FOLLOW_UP");
+    expect(normalizeCrmStatus("callback").value).toBe("GOOD_LEAD_FOLLOW_UP");
+    expect(normalizeCrmStatus("DNC").value).toBe("DID_NOT_CONNECT");
+    expect(normalizeCrmStatus("wrong number").value).toBe("BAD_LEAD");
+    expect(normalizeCrmStatus("booked").value).toBe("SALE_DONE");
+    expect(normalizeCrmStatus("Hot Lead").value).toBe("GOOD_LEAD_FOLLOW_UP");
   });
 
   it("maps project nicknames used in RE sheets", () => {
-    expect(normalizeDataSource("LOD")).toBe("leads_on_demand");
-    expect(normalizeDataSource("Meridian")).toBe("meridian_tower");
-    expect(normalizeDataSource("sarjapur road")).toBe("sarjapur_plots");
-    expect(normalizeDataSource("Varah Swamy")).toBe("varah_swamy");
-    expect(normalizeDataSource("Eden")).toBe("eden_park");
+    expect(normalizeDataSource("LOD").value).toBe("leads_on_demand");
+    expect(normalizeDataSource("Meridian").value).toBe("meridian_tower");
+    expect(normalizeDataSource("sarjapur road").value).toBe("sarjapur_plots");
+    expect(normalizeDataSource("Varah Swamy").value).toBe("varah_swamy");
+    expect(normalizeDataSource("Eden").value).toBe("eden_park");
   });
 });
 
