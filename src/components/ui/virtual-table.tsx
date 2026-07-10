@@ -48,7 +48,7 @@ export function VirtualTable({
       style={{ maxHeight }}
     >
       <table className="w-full min-w-max border-collapse text-sm">
-        <thead className="relative md:sticky top-0 z-10">
+        <thead className="relative xl:sticky top-0 z-10">
           <tr
             className={cn(
               "border-b",
@@ -62,7 +62,7 @@ export function VirtualTable({
             {showRowNumbers && (
               <th
                 className={cn(
-                  "relative md:sticky left-0 z-[11] w-11 border-r border-[var(--ge-border)] bg-inherit text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--ge-text-muted)]",
+                  "relative xl:sticky left-0 z-[11] w-11 border-r border-[var(--ge-border)] bg-inherit text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--ge-text-muted)]",
                   isGroweasy ? "px-2.5 py-2" : "px-3 py-2.5"
                 )}
               >
@@ -133,7 +133,7 @@ export function VirtualTable({
                     {showRowNumbers && (
                       <td
                         className={cn(
-                          "relative md:sticky left-0 z-[1] border-r border-[var(--ge-border)] px-2.5 text-center text-[11px] font-medium tabular-nums text-slate-400",
+                          "relative xl:sticky left-0 z-[1] border-r border-[var(--ge-border)] px-2.5 text-center text-[11px] font-medium tabular-nums text-slate-400",
                           isEven
                             ? "bg-white group-hover:bg-[#f0f6ff] dark:bg-slate-900 dark:group-hover:bg-slate-800/70"
                             : "bg-[#fbfcfd] group-hover:bg-[#f0f6ff] dark:bg-slate-900/60 dark:group-hover:bg-slate-800/70"

@@ -38,7 +38,7 @@ export function DataTable<TData, TValue>({
   return (
     <div className={cn("w-full", className)}>
       <table className="w-full min-w-max text-sm">
-        <thead className="relative md:sticky top-0 z-10">
+        <thead className="relative xl:sticky top-0 z-10">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id} className="border-b border-[#E8E8E8] bg-[#FAFAFA]">
               {headerGroup.headers.map((header) => (
