@@ -15,7 +15,7 @@ export function Header({ minimal = false }: HeaderProps) {
 
   if (minimal) {
     return (
-      <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <header className="relative md:sticky top-0 z-50 w-full border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
         <div className="mx-auto flex h-12 max-w-[1440px] items-center justify-between px-4 sm:px-6">
           <AppLogo />
           <ThemeToggle />
@@ -25,7 +25,7 @@ export function Header({ minimal = false }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+    <header className="relative md:sticky top-0 z-50 w-full border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
       <div className="mx-auto flex h-12 max-w-[1440px] items-center justify-between px-4 sm:px-6">
         <AppLogo />
         <div className="flex items-center gap-2">

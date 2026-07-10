@@ -376,14 +376,29 @@
     border-spacing: 0;
   }
 
+  /* =================================================================
+   * MOBILE STICKY KILL SWITCH — Mobile (<768px): disable ALL sticky.
+   * Desktop/tablet (>=768px): sticky operates normally via md: classes.
+   * Modals, dialogs, and toasts use `fixed` and are explicitly excluded.
+   * ================================================================= */
   @media (max-width: 767px) {
+    /* Table internals — ge-results-table (CsvPreviewSection, CrmResultsSection) */
     .ge-results-table thead,
     .ge-results-table thead *,
+    .ge-results-table tbody,
     .ge-results-table th,
     .ge-results-table td {
       position: static !important;
       left: auto !important;
       top: auto !important;
+    }
+
+    /* All other tables (data-table, virtual-table, any future tables) */
+    table thead,
+    table thead * {
+      position: static !important;
+      top: auto !important;
+      left: auto !important;
     }
   }
 
