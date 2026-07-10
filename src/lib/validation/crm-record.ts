@@ -99,7 +99,9 @@ export function isValidCreatedAt(value: string): boolean {
 }
 
 function textField(value: unknown): string {
-  return escapeNewlines(String(value ?? "").trim());
+  const str = escapeNewlines(String(value ?? "").trim());
+  if (/^[=+\-@]/.test(str)) return `'${str}`;
+  return str;
 }
 
 /**
