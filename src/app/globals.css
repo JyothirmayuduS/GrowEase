@@ -286,6 +286,28 @@
     background-attachment: local, local;
   }
 
+  /*
+   * Vertical column rules that survive sticky cells + border-collapse.
+   * Prefer inset box-shadow over border-r (sticky backgrounds paint over borders).
+   */
+  .ge-col-rule {
+    box-shadow: inset -1px 0 0 var(--ge-border-strong);
+  }
+
+  .ge-col-rule-last {
+    box-shadow: none;
+  }
+
+  .ge-results-table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .ge-results-table th,
+  .ge-results-table td {
+    border-bottom: 1px solid var(--ge-border);
+  }
+
   @media (max-width: 640px) {
     .ge-btn-primary,
     .ge-btn-secondary,

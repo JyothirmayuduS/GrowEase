@@ -219,7 +219,7 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
               </div>
             ) : (
               <div className="ge-table-scroll overflow-x-auto">
-                <table className="w-full min-w-[1100px] border-collapse">
+                <table className="ge-results-table w-full min-w-[1100px]">
                   <caption className="sr-only">
                     Import results. {summary.clean} clean, {summary.needsReview} need review,{" "}
                     {summary.skipped} skipped. Horizontal scroll for more columns.
@@ -228,19 +228,19 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
                     <tr>
                       <th
                         scope="col"
-                        className="sticky left-0 z-[2] w-[52px] border-b border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
+                        className="ge-col-rule sticky left-0 z-[2] w-[52px] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
                       >
                         #
                       </th>
                       <th
                         scope="col"
-                        className="sticky left-[52px] z-[2] w-[240px] min-w-[240px] border-b border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
+                        className="ge-col-rule sticky left-[52px] z-[2] w-[220px] min-w-[220px] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
                       >
                         Status
                       </th>
                       <th
                         scope="col"
-                        className="sticky left-[292px] z-[2] w-[150px] border-b border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
+                        className="ge-col-rule sticky left-[272px] z-[2] w-[150px] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
                       >
                         Name
                       </th>
@@ -264,19 +264,28 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
                       const codeIssue = quality.issues.find((i) => i.field === "country_code");
                       const nameIssue = quality.issues.find((i) => i.field === "name");
                       const reasons = statusReasonsList(quality.issues);
+                      const edge =
+                        state === "needs_review"
+                          ? "border-l-[3px] border-l-[var(--ge-warning)]"
+                          : "border-l-[3px] border-l-transparent";
 
                       return (
                         <tr
                           key={`${index}-${record.email}-${record.mobile_without_country_code}`}
-                          className="group border-b border-[var(--ge-border)] bg-[var(--ge-card)] hover:bg-[var(--ge-panel)]"
+                          className="group bg-[var(--ge-card)] hover:bg-[var(--ge-panel)]"
                         >
-                          <td className="sticky left-0 z-[1] border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-2.5 font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]">
+                          <td
+                            className={cn(
+                              "ge-col-rule sticky left-0 z-[1] bg-[var(--ge-card)] px-3.5 py-2.5 font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
+                              edge
+                            )}
+                          >
                             {index + 1}
                           </td>
-                          <td className="sticky left-[52px] z-[1] w-[240px] max-w-[240px] overflow-visible border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-2.5 group-hover:bg-[var(--ge-panel)]">
-                            <RowStateBadge state={state} reasons={reasons} />
+                          <td className="ge-col-rule sticky left-[52px] z-[1] w-[220px] max-w-[220px] overflow-visible bg-[var(--ge-card)] px-3.5 py-2.5 group-hover:bg-[var(--ge-panel)]">
+                            <RowStateBadge state={state} variant="plain" reasons={reasons} />
                           </td>
-                          <td className="sticky left-[292px] z-[1] border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-2.5 text-[13px] font-semibold group-hover:bg-[var(--ge-panel)]">
+                          <td className="ge-col-rule sticky left-[272px] z-[1] bg-[var(--ge-card)] px-3.5 py-2.5 text-[13px] font-semibold group-hover:bg-[var(--ge-panel)]">
                             <FieldValue
                               value={record.name}
                               issue={nameIssue?.message}
@@ -417,8 +426,8 @@ function Th({ children, last }: { children: React.ReactNode; last?: boolean }) {
     <th
       scope="col"
       className={cn(
-        "whitespace-nowrap border-b border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]",
-        !last && "border-r border-[var(--ge-border)]"
+        "whitespace-nowrap bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]",
+        last ? "ge-col-rule-last" : "ge-col-rule"
       )}
     >
       {children}
@@ -439,7 +448,7 @@ function Td({
     <td
       className={cn(
         "whitespace-nowrap px-3.5 py-2.5",
-        !last && "border-r border-[var(--ge-border)]",
+        last ? "ge-col-rule-last" : "ge-col-rule",
         className
       )}
     >
@@ -451,7 +460,7 @@ function Td({
 function SkippedTable({ rows }: { rows: SkippedRecord[] }) {
   return (
     <div className="ge-table-scroll overflow-x-auto">
-      <table className="w-full min-w-[720px] border-collapse">
+      <table className="ge-results-table w-full min-w-[720px]">
         <caption className="sr-only">Skipped rows with reasons and source data.</caption>
         <thead>
           <tr>
@@ -462,16 +471,13 @@ function SkippedTable({ rows }: { rows: SkippedRecord[] }) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr
-              key={row.rowIndex}
-              className="border-b border-[var(--ge-border)] hover:bg-[var(--ge-panel)]"
-            >
+            <tr key={row.rowIndex} className="group bg-[var(--ge-card)] hover:bg-[var(--ge-panel)]">
               <Td className="font-mono text-[13px] text-[var(--ge-text)]">
                 {row.rowIndex + 1}
               </Td>
               <Td>
                 <span className="inline-flex items-center gap-2">
-                  <RowStateBadge state="skipped" reasons={[row.reason]} />
+                  <RowStateBadge state="skipped" variant="plain" reasons={[row.reason]} />
                   <span className="text-[13px] font-semibold text-[var(--ge-danger-on-tint)]">
                     {row.reason}
                   </span>
