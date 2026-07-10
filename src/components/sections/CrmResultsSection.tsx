@@ -1,12 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { ArrowDown, ArrowUp, Columns3 } from "lucide-react";
 
 import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";
+import { PageAnnotations } from "@/components/ui/page-annotations";
 import { QualityPieChart } from "@/components/ui/quality-pie-chart";
+import { colStyle, ResizableTh } from "@/components/ui/resizable-th";
 import { RowStateBadge } from "@/components/ui/row-state-badge";
 import { useToast } from "@/components/ui/toast";
+import { useColumnWidths } from "@/hooks/use-column-widths";
 import { CRM_FIELDS } from "@/lib/constants/crm";
 import type { CrmLeadRecord, ImportApiResponse, SkippedRecord } from "@/lib/types/crm";
 import {
@@ -17,6 +20,34 @@ import {
 } from "@/lib/validation/record-quality";
 import type { QualitySummary, RowState } from "@/lib/validation/row-quality";
 import { cn } from "@/lib/utils";
+
+const RESULTS_COL_KEYS = [
+  "#",
+  "__status",
+  "name",
+  "email",
+  "country",
+  "mobile",
+  "company",
+  "city",
+  "state",
+  "lead_owner",
+  "crm_stage",
+] as const;
+
+const RESULTS_DEFAULTS: Record<string, number> = {
+  "#": 52,
+  __status: 200,
+  name: 150,
+  email: 180,
+  country: 90,
+  mobile: 130,
+  company: 140,
+  city: 110,
+  state: 110,
+  lead_owner: 140,
+  crm_stage: 150,
+};
 
 const FIELD_REASON_LABEL: Partial<Record<keyof CrmLeadRecord, string>> = {
   name: "name",
@@ -137,6 +168,19 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
     });
   };
 
+  const colKeys = useMemo(() => [...RESULTS_COL_KEYS], []);
+  const { widths, resize, reset, stickyLeft } = useColumnWidths(
+    colKeys,
+    RESULTS_DEFAULTS,
+    `ge-results-cols:${fileName}`
+  );
+
+  const stickyOrder = ["#", "__status", "name"];
+  const leftHash = 0;
+  const leftStatus = stickyLeft(stickyOrder, 1);
+  const leftName = stickyLeft(stickyOrder, 2);
+  const notesKey = `ge-notes:results:${fileName}`;
+
   return (
     <LeadSourcesPage title="Import results">
       <div className="flex h-full min-h-0 flex-1 flex-col overflow-auto bg-[var(--ge-page)]">
@@ -169,10 +213,24 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
                 <span className="text-[12.5px] text-[var(--ge-text-muted)]">
                   {avgConfidence}% avg confidence
                 </span>
+                <span className="text-[12px] text-[var(--ge-text-muted)]">·</span>
+                <span className="text-[12.5px] text-[var(--ge-text-muted)]">
+                  drag column edges to resize
+                </span>
               </div>
             </div>
 
-            <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row">
+            <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+              <PageAnnotations storageKey={notesKey} />
+              <button
+                type="button"
+                onClick={reset}
+                className="ge-btn-secondary inline-flex w-full items-center justify-center gap-1.5 sm:w-auto"
+                title="Reset column widths"
+              >
+                <Columns3 className="h-3.5 w-3.5" aria-hidden />
+                Reset columns
+              </button>
               <button
                 type="button"
                 onClick={onBack}
@@ -219,39 +277,69 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
               </div>
             ) : (
               <div className="ge-table-scroll overflow-x-auto">
-                <table className="ge-results-table w-full min-w-[1100px]">
+                <table className="ge-results-table w-full min-w-max table-fixed">
                   <caption className="sr-only">
                     Import results. {summary.clean} clean, {summary.needsReview} need review,{" "}
-                    {summary.skipped} skipped. Horizontal scroll for more columns.
+                    {summary.skipped} skipped. Drag column edges to resize.
                   </caption>
                   <thead>
                     <tr>
-                      <th
+                      <ResizableTh
                         scope="col"
-                        className="ge-col-rule sticky left-0 z-[2] w-[52px] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
+                        columnKey="#"
+                        width={widths["#"]}
+                        onResize={resize}
+                        className="ge-col-rule sticky z-[2] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
+                        style={{ left: leftHash }}
                       >
                         #
-                      </th>
-                      <th
+                      </ResizableTh>
+                      <ResizableTh
                         scope="col"
-                        className="ge-col-rule sticky left-[52px] z-[2] w-[220px] min-w-[220px] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
+                        columnKey="__status"
+                        width={widths.__status}
+                        onResize={resize}
+                        className="ge-col-rule sticky z-[2] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
+                        style={{ left: leftStatus }}
                       >
                         Status
-                      </th>
-                      <th
+                      </ResizableTh>
+                      <ResizableTh
                         scope="col"
-                        className="ge-col-rule sticky left-[272px] z-[2] w-[150px] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
+                        columnKey="name"
+                        width={widths.name}
+                        onResize={resize}
+                        className="ge-col-rule sticky z-[2] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
+                        style={{ left: leftName }}
                       >
                         Name
-                      </th>
-                      <Th>Email</Th>
-                      <Th>Country</Th>
-                      <Th>Mobile</Th>
-                      <Th>Company</Th>
-                      <Th>City</Th>
-                      <Th>State</Th>
-                      <Th>Lead owner</Th>
-                      <Th last>CRM stage</Th>
+                      </ResizableTh>
+                      {(
+                        [
+                          ["email", "Email"],
+                          ["country", "Country"],
+                          ["mobile", "Mobile"],
+                          ["company", "Company"],
+                          ["city", "City"],
+                          ["state", "State"],
+                          ["lead_owner", "Lead owner"],
+                          ["crm_stage", "CRM stage"],
+                        ] as const
+                      ).map(([key, label], i, arr) => (
+                        <ResizableTh
+                          key={key}
+                          scope="col"
+                          columnKey={key}
+                          width={widths[key]}
+                          onResize={resize}
+                          className={cn(
+                            "bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]",
+                            i === arr.length - 1 ? "ge-col-rule-last" : "ge-col-rule"
+                          )}
+                        >
+                          {label}
+                        </ResizableTh>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
@@ -276,16 +364,23 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
                         >
                           <td
                             className={cn(
-                              "ge-col-rule sticky left-0 z-[1] bg-[var(--ge-card)] px-3.5 py-2.5 font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
+                              "ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3.5 py-2.5 font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
                               edge
                             )}
+                            style={{ ...colStyle(widths["#"]), left: leftHash }}
                           >
                             {index + 1}
                           </td>
-                          <td className="ge-col-rule sticky left-[52px] z-[1] w-[220px] max-w-[220px] overflow-visible bg-[var(--ge-card)] px-3.5 py-2.5 group-hover:bg-[var(--ge-panel)]">
+                          <td
+                            className="ge-col-rule sticky z-[1] overflow-visible bg-[var(--ge-card)] px-3.5 py-2.5 group-hover:bg-[var(--ge-panel)]"
+                            style={{ ...colStyle(widths.__status), left: leftStatus }}
+                          >
                             <RowStateBadge state={state} variant="plain" reasons={reasons} />
                           </td>
-                          <td className="ge-col-rule sticky left-[272px] z-[1] bg-[var(--ge-card)] px-3.5 py-2.5 text-[13px] font-semibold group-hover:bg-[var(--ge-panel)]">
+                          <td
+                            className="ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3.5 py-2.5 text-[13px] font-semibold group-hover:bg-[var(--ge-panel)]"
+                            style={{ ...colStyle(widths.name), left: leftName }}
+                          >
                             <FieldValue
                               value={record.name}
                               issue={nameIssue?.message}
@@ -293,36 +388,36 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
                               strong
                             />
                           </td>
-                          <Td>
+                          <Td width={widths.email}>
                             <FieldValue value={record.email} issue={emailIssue?.message} mono />
                           </Td>
-                          <Td>
+                          <Td width={widths.country}>
                             <FieldValue
                               value={record.country_code}
                               issue={codeIssue?.message}
                               mono
                             />
                           </Td>
-                          <Td>
+                          <Td width={widths.mobile}>
                             <FieldValue
                               value={record.mobile_without_country_code}
                               issue={mobileIssue?.message}
                               mono
                             />
                           </Td>
-                          <Td>
+                          <Td width={widths.company}>
                             <FieldValue value={record.company} mono />
                           </Td>
-                          <Td>
+                          <Td width={widths.city}>
                             <FieldValue value={record.city} mono />
                           </Td>
-                          <Td>
+                          <Td width={widths.state}>
                             <FieldValue value={record.state} mono />
                           </Td>
-                          <Td>
+                          <Td width={widths.lead_owner}>
                             <FieldValue value={record.lead_owner} mono />
                           </Td>
-                          <Td last className="text-[13px] text-[var(--ge-text)]">
+                          <Td last width={widths.crm_stage} className="text-[13px] text-[var(--ge-text)]">
                             {record.crm_status ? (
                               formatCrmStage(record.crm_status)
                             ) : (
@@ -439,18 +534,21 @@ function Td({
   children,
   last,
   className,
+  width,
 }: {
   children: React.ReactNode;
   last?: boolean;
   className?: string;
+  width?: number;
 }) {
   return (
     <td
       className={cn(
-        "whitespace-nowrap px-3.5 py-2.5",
+        "overflow-hidden whitespace-nowrap px-3.5 py-2.5",
         last ? "ge-col-rule-last" : "ge-col-rule",
         className
       )}
+      style={width != null ? colStyle(width) : undefined}
     >
       {children}
     </td>

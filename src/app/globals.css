@@ -308,6 +308,36 @@
     border-bottom: 1px solid var(--ge-border);
   }
 
+  /* Column resize handle */
+  .ge-col-resize-handle {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .ge-col-resize-grip {
+    width: 2px;
+    margin: 6px 0;
+    border-radius: 1px;
+    background: transparent;
+    transition: background 0.12s ease;
+  }
+
+  .ge-col-resize-handle:hover .ge-col-resize-grip,
+  .ge-col-resize-handle:focus-visible .ge-col-resize-grip,
+  body.ge-col-resizing .ge-col-resize-grip {
+    background: var(--ge-accent);
+  }
+
+  body.ge-col-resizing {
+    cursor: col-resize !important;
+    user-select: none !important;
+  }
+
+  body.ge-col-resizing * {
+    cursor: col-resize !important;
+  }
+
   @media (max-width: 640px) {
     .ge-btn-primary,
     .ge-btn-secondary,

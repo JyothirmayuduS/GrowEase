@@ -1,13 +1,16 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { FileSpreadsheet, RefreshCw } from "lucide-react";
+import { Columns3, FileSpreadsheet, RefreshCw } from "lucide-react";
 
 import { ACCEPTED_TYPES } from "@/components/features/csv-import/FileDropzone";
 import { ImportPanel } from "@/components/layout/ImportPanel";
 import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";
+import { PageAnnotations } from "@/components/ui/page-annotations";
 import { QualityPieChart } from "@/components/ui/quality-pie-chart";
+import { colStyle, ResizableTh } from "@/components/ui/resizable-th";
 import { FieldFlagBadge, RowStateBadge } from "@/components/ui/row-state-badge";
+import { useColumnWidths } from "@/hooks/use-column-widths";
 import type { ParsedCsv } from "@/lib/types/app";
 import {
   assessPreviewRows,
@@ -27,6 +30,8 @@ interface CsvPreviewSectionProps {
 }
 
 type Filter = RowState | "all";
+
+const FIXED_KEYS = ["#", "__status"] as const;
 
 export function CsvPreviewSection({
   data,
@@ -62,10 +67,37 @@ export function CsvPreviewSection({
   const stickyHeader = headers[0] ?? "Column";
   const otherHeaders = headers.slice(1);
 
+  const columnKeys = useMemo(
+    () => [...FIXED_KEYS, ...headers],
+    [headers]
+  );
+
+  const defaults = useMemo(() => {
+    const d: Record<string, number> = {
+      "#": 52,
+      __status: 200,
+    };
+    for (const h of headers) d[h] = h === stickyHeader ? 160 : 140;
+    return d;
+  }, [headers, stickyHeader]);
+
+  const { widths, resize, reset, stickyLeft } = useColumnWidths(
+    columnKeys,
+    defaults,
+    `ge-preview-cols:${data.fileName}`
+  );
+
+  const stickyOrder = ["#", "__status", stickyHeader];
+  const leftHash = 0;
+  const leftStatus = stickyLeft(stickyOrder, 1);
+  const leftFirst = stickyLeft(stickyOrder, 2);
+
+  const notesKey = `ge-notes:preview:${data.fileName}`;
+
   return (
     <LeadSourcesPage
       title="Preview import"
-      description={`${summary.total} rows · ${headers.length} columns`}
+      description={`${summary.total} rows · ${headers.length} columns · drag column edges to resize`}
     >
       <ImportPanel
         footer={
@@ -109,7 +141,6 @@ export function CsvPreviewSection({
             </div>
           )}
 
-          {/* File meta */}
           <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] px-4 py-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--ge-radius-md)] bg-[var(--ge-success-tint)]">
@@ -148,11 +179,23 @@ export function CsvPreviewSection({
                 </>
               )}
             </div>
+
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={reset}
+                className="inline-flex items-center gap-1.5 rounded-[var(--ge-radius-md)] border border-[var(--ge-border-strong)] bg-[var(--ge-card)] px-3 py-1.5 text-[12px] font-semibold text-[var(--ge-text-secondary)] hover:text-[var(--ge-text)]"
+                title="Reset column widths"
+              >
+                <Columns3 className="h-3.5 w-3.5" aria-hidden />
+                Reset columns
+              </button>
+              <PageAnnotations storageKey={notesKey} />
+            </div>
           </div>
 
           <QualityPieChart summary={summary} active={filter} onSelect={setFilter} />
 
-          {/* Table */}
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)]">
             {headers.length === 0 ? (
               <EmptyPreview />
@@ -162,39 +205,57 @@ export function CsvPreviewSection({
               </div>
             ) : (
               <div className="ge-table-scroll relative min-h-0 flex-1 overflow-auto">
-                <table className="ge-results-table w-full min-w-max text-left">
+                <table className="ge-results-table w-full min-w-max table-fixed text-left">
                   <caption className="sr-only">
                     CSV preview with row quality. {summary.clean} clean, {summary.needsReview} need
-                    review, {summary.skipped} skipped.
+                    review, {summary.skipped} skipped. Drag column edges to resize.
                   </caption>
                   <thead className="sticky top-0 z-10">
                     <tr className="bg-[var(--ge-panel)]">
-                      <th
+                      <ResizableTh
                         scope="col"
-                        className="sticky left-0 z-[12] w-14 ge-col-rule bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        columnKey="#"
+                        width={widths["#"]}
+                        onResize={resize}
+                        className="ge-col-rule sticky z-[12] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        style={{ left: leftHash }}
                       >
                         #
-                      </th>
-                      <th
+                      </ResizableTh>
+                      <ResizableTh
                         scope="col"
-                        className="sticky left-14 z-[12] min-w-[220px] w-[220px] ge-col-rule bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        columnKey="__status"
+                        width={widths.__status}
+                        onResize={resize}
+                        className="ge-col-rule sticky z-[12] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        style={{ left: leftStatus }}
                       >
                         Status
-                      </th>
-                      <th
+                      </ResizableTh>
+                      <ResizableTh
                         scope="col"
-                        className="sticky left-[calc(3.5rem+220px)] z-[12] min-w-[160px] ge-col-rule bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        columnKey={stickyHeader}
+                        width={widths[stickyHeader] ?? 160}
+                        onResize={resize}
+                        className="ge-col-rule sticky z-[12] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        style={{ left: leftFirst }}
                       >
                         {stickyHeader}
-                      </th>
-                      {otherHeaders.map((header) => (
-                        <th
+                      </ResizableTh>
+                      {otherHeaders.map((header, i) => (
+                        <ResizableTh
                           key={header}
                           scope="col"
-                          className="ge-col-rule whitespace-nowrap px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)] last:shadow-none"
+                          columnKey={header}
+                          width={widths[header] ?? 140}
+                          onResize={resize}
+                          className={cn(
+                            "ge-col-rule whitespace-nowrap px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]",
+                            i === otherHeaders.length - 1 && "ge-col-rule-last shadow-none"
+                          )}
                         >
                           {header}
-                        </th>
+                        </ResizableTh>
                       ))}
                     </tr>
                   </thead>
@@ -202,10 +263,7 @@ export function CsvPreviewSection({
                     {visible.map(({ row, index, assessment }) => {
                       if (assessment.state === "skipped") {
                         return (
-                          <tr
-                            key={index}
-                            className="bg-[var(--ge-card)]"
-                          >
+                          <tr key={index} className="bg-[var(--ge-card)]">
                             <td
                               colSpan={headers.length + 2}
                               className="border-l-[3px] border-l-[var(--ge-danger)] px-4 py-3 text-[13px]"
@@ -246,20 +304,30 @@ export function CsvPreviewSection({
                         >
                           <td
                             className={cn(
-                              "sticky left-0 z-[1] ge-col-rule bg-[var(--ge-card)] px-3 py-2.5 font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
+                              "ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3 py-2.5 font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
                               edge
                             )}
+                            style={{ ...colStyle(widths["#"]), left: leftHash }}
                           >
                             {index + 1}
                           </td>
-                          <td className="sticky left-14 z-[1] w-[220px] max-w-[220px] overflow-visible ge-col-rule bg-[var(--ge-card)] px-3 py-2.5 group-hover:bg-[var(--ge-panel)]">
+                          <td
+                            className="ge-col-rule sticky z-[1] overflow-visible bg-[var(--ge-card)] px-3 py-2.5 group-hover:bg-[var(--ge-panel)]"
+                            style={{ ...colStyle(widths.__status), left: leftStatus }}
+                          >
                             <RowStateBadge
                               state={assessment.state}
                               variant="plain"
                               reasons={statusReasons}
                             />
                           </td>
-                          <td className="sticky left-[calc(3.5rem+220px)] z-[1] max-w-[220px] ge-col-rule bg-[var(--ge-card)] px-3 py-2.5 group-hover:bg-[var(--ge-panel)]">
+                          <td
+                            className="ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3 py-2.5 group-hover:bg-[var(--ge-panel)]"
+                            style={{
+                              ...colStyle(widths[stickyHeader] ?? 160),
+                              left: leftFirst,
+                            }}
+                          >
                             <PreviewCell
                               value={row[stickyHeader] ?? ""}
                               flag={
@@ -269,10 +337,14 @@ export function CsvPreviewSection({
                               }
                             />
                           </td>
-                          {otherHeaders.map((header) => (
+                          {otherHeaders.map((header, i) => (
                             <td
                               key={header}
-                              className="ge-col-rule max-w-[220px] px-3 py-2.5 last:shadow-none"
+                              className={cn(
+                                "ge-col-rule px-3 py-2.5",
+                                i === otherHeaders.length - 1 && "shadow-none"
+                              )}
+                              style={colStyle(widths[header] ?? 140)}
                             >
                               <PreviewCell
                                 value={row[header] ?? ""}
@@ -310,7 +382,7 @@ function PreviewCell({
     return <span className="text-[12.5px] italic text-[var(--ge-text-muted)]">—</span>;
   }
   return (
-    <div className="flex min-w-0 flex-col gap-1">
+    <div className="flex min-w-0 flex-col gap-1 overflow-hidden">
       {trimmed ? (
         <span className="truncate font-mono text-[12.5px] text-[var(--ge-text)]" title={trimmed}>
           {trimmed}
