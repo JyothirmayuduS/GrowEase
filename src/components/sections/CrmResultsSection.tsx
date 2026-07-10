@@ -19,6 +19,7 @@ import {
   type RecordQuality,
 } from "@/lib/validation/record-quality";
 import type { QualitySummary, RowState } from "@/lib/validation/row-quality";
+import { escapeCsvFormulaForExport } from "@/lib/services/SanitizationService";
 import { cn } from "@/lib/utils";
 
 const RESULTS_COL_KEYS = [

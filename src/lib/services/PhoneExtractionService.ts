@@ -156,7 +156,8 @@ export function extractPhonesFromRow(
 
     for (const phone of result.phones) {
       // Infer +91 for 10-digit Indian numbers
-      let { countryCode, number, e164 } = phone;
+      let { countryCode, e164 } = phone;
+      const { number } = phone;
       if (!countryCode && isIndiaContext && number.length === 10) {
         countryCode = "+91";
         e164 = `+91${number}`;
