@@ -162,28 +162,28 @@ export function CsvPreviewSection({
               </div>
             ) : (
               <div className="ge-table-scroll relative min-h-0 flex-1 overflow-auto">
-                <table className="w-full min-w-max border-collapse text-left">
+                <table className="ge-results-table w-full min-w-max text-left">
                   <caption className="sr-only">
                     CSV preview with row quality. {summary.clean} clean, {summary.needsReview} need
                     review, {summary.skipped} skipped.
                   </caption>
                   <thead className="sticky top-0 z-10">
-                    <tr className="border-b border-[var(--ge-border)] bg-[var(--ge-panel)]">
+                    <tr className="bg-[var(--ge-panel)]">
                       <th
                         scope="col"
-                        className="sticky left-0 z-[12] w-14 border-r border-[var(--ge-border)] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        className="sticky left-0 z-[12] w-14 ge-col-rule bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
                       >
                         #
                       </th>
                       <th
                         scope="col"
-                        className="sticky left-14 z-[12] min-w-[220px] w-[220px] border-r border-[var(--ge-border)] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        className="sticky left-14 z-[12] min-w-[220px] w-[220px] ge-col-rule bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
                       >
                         Status
                       </th>
                       <th
                         scope="col"
-                        className="sticky left-[calc(3.5rem+220px)] z-[12] min-w-[160px] border-r border-[var(--ge-border)] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        className="sticky left-[calc(3.5rem+220px)] z-[12] min-w-[160px] ge-col-rule bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
                       >
                         {stickyHeader}
                       </th>
@@ -191,7 +191,7 @@ export function CsvPreviewSection({
                         <th
                           key={header}
                           scope="col"
-                          className="whitespace-nowrap border-r border-[var(--ge-border)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)] last:border-r-0"
+                          className="ge-col-rule whitespace-nowrap px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)] last:shadow-none"
                         >
                           {header}
                         </th>
@@ -204,7 +204,7 @@ export function CsvPreviewSection({
                         return (
                           <tr
                             key={index}
-                            className="border-b border-[var(--ge-border)] bg-[var(--ge-card)]"
+                            className="bg-[var(--ge-card)]"
                           >
                             <td
                               colSpan={headers.length + 2}
@@ -242,24 +242,24 @@ export function CsvPreviewSection({
                       return (
                         <tr
                           key={index}
-                          className="group border-b border-[var(--ge-border)] bg-[var(--ge-card)] hover:bg-[var(--ge-panel)]"
+                          className="group bg-[var(--ge-card)] hover:bg-[var(--ge-panel)]"
                         >
                           <td
                             className={cn(
-                              "sticky left-0 z-[1] border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3 py-2.5 font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
+                              "sticky left-0 z-[1] ge-col-rule bg-[var(--ge-card)] px-3 py-2.5 font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
                               edge
                             )}
                           >
                             {index + 1}
                           </td>
-                          <td className="sticky left-14 z-[1] w-[220px] max-w-[220px] overflow-visible border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3 py-2.5 group-hover:bg-[var(--ge-panel)]">
+                          <td className="sticky left-14 z-[1] w-[220px] max-w-[220px] overflow-visible ge-col-rule bg-[var(--ge-card)] px-3 py-2.5 group-hover:bg-[var(--ge-panel)]">
                             <RowStateBadge
                               state={assessment.state}
                               variant="plain"
                               reasons={statusReasons}
                             />
                           </td>
-                          <td className="sticky left-[calc(3.5rem+220px)] z-[1] max-w-[220px] border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3 py-2.5 group-hover:bg-[var(--ge-panel)]">
+                          <td className="sticky left-[calc(3.5rem+220px)] z-[1] max-w-[220px] ge-col-rule bg-[var(--ge-card)] px-3 py-2.5 group-hover:bg-[var(--ge-panel)]">
                             <PreviewCell
                               value={row[stickyHeader] ?? ""}
                               flag={
@@ -272,7 +272,7 @@ export function CsvPreviewSection({
                           {otherHeaders.map((header) => (
                             <td
                               key={header}
-                              className="max-w-[220px] border-r border-[var(--ge-border)] px-3 py-2.5 last:border-r-0"
+                              className="ge-col-rule max-w-[220px] px-3 py-2.5 last:shadow-none"
                             >
                               <PreviewCell
                                 value={row[header] ?? ""}
