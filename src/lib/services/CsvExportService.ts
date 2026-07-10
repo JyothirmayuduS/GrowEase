@@ -45,7 +45,7 @@ function escapeCsvCell(value: string): string {
  * Generate a header row from CRM field labels.
  */
 function generateHeaderRow(): string {
-  return CRM_FIELDS.map((field) => escapeCsvCell(CRM_FIELD_LABELS[field])).join(",");
+  return CRM_FIELDS.map((field) => escapeCsvCell(CRM_FIELD_LABELS[field] || "")).join(",");
 }
 
 /**

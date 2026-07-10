@@ -11,7 +11,7 @@ import {
  * and agent-typed real-estate lists. Matching is on normalized headers
  * (lowercase, spaces/hyphens → underscores).
  */
-const FIELD_ALIASES: Record<keyof CrmLeadRecord, string[]> = {
+const FIELD_ALIASES: Partial<Record<keyof CrmLeadRecord, string[]>> = {
   created_at: [
     "created_at",
     "created",
@@ -353,7 +353,7 @@ function mapRow(headers: string[], row: Record<string, string>): Partial<CrmLead
     } else if (field === "mobile_without_country_code") {
       // handled via phone column below
     } else {
-      record[field] = value;
+      (record as Record<string, string | undefined>)[field] = value;
     }
   }
 

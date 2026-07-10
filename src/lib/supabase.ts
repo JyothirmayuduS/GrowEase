@@ -89,7 +89,8 @@ export async function storeImportResultInSupabase(
         data_source: l.data_source || null,
         possession_time: l.possession_time || null,
         description: l.description || null,
-        original_record: {},
+        original_record: l.original_record || {},
+        confidence: l.confidence ?? null,
       }));
 
       const { error: leadsError } = await supabase.from("crm_leads").insert(leadRows);

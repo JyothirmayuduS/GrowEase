@@ -85,6 +85,8 @@ function processRecords(
         raw: rawRow,
       });
     } else {
+      classified.record.confidence = classified.confidence;
+      classified.record.original_record = rawRow;
       imported.push(classified.record);
     }
   });

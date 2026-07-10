@@ -33,7 +33,7 @@ export const CRM_FIELDS: (keyof CrmLeadRecord)[] = [
   "description",
 ];
 
-export const CRM_FIELD_LABELS: Record<keyof CrmLeadRecord, string> = {
+export const CRM_FIELD_LABELS: Partial<Record<keyof CrmLeadRecord, string>> = {
   created_at: "Created At",
   name: "Name",
   email: "Email",

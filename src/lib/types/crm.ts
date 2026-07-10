@@ -27,6 +27,8 @@ export interface CrmLeadRecord {
   data_source: DataSource | "";
   possession_time: string;
   description: string;
+  confidence?: number;
+  original_record?: Record<string, string>;
 }
 
 export interface SkippedRecord {
