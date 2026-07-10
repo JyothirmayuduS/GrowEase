@@ -165,6 +165,18 @@ function editDistance(a: string, b: string): number {
 
 function fuzzyAliasMatch(key: string, aliases: string[]): boolean {
   if (aliases.includes(key)) return true;
+
+  // Do not let first_name / last_name map directly to full name via token splitting
+  if (
+    aliases.includes("name") &&
+    (key.includes("first") ||
+      key.includes("last") ||
+      key.includes("fname") ||
+      key.includes("lname"))
+  ) {
+    return false;
+  }
+
   // Compound headers: "name_contact", "builder_project"
   const tokens = key.split("_").filter(Boolean);
   if (tokens.some((t) => aliases.includes(t))) return true;
@@ -282,11 +294,30 @@ function findPhoneInRow(
   return null;
 }
 
+function findNamePartsHeaders(headers: string[]): { first?: string; last?: string } {
+  const normalized = headers.map((h) => ({ raw: h, key: normalizeHeader(h) }));
+  const firstAliases = ["first_name", "firstname", "given_name", "first", "fname"];
+  const lastAliases = ["last_name", "lastname", "surname", "family_name", "last", "lname"];
+
+  const first = normalized.find(
+    ({ key }) => firstAliases.includes(key) || fuzzyAliasMatch(key, firstAliases)
+  )?.raw;
+  const last = normalized.find(
+    ({ key }) => lastAliases.includes(key) || fuzzyAliasMatch(key, lastAliases)
+  )?.raw;
+
+  return { first, last };
+}
+
 function mapRow(headers: string[], row: Record<string, string>): Partial<CrmLeadRecord> {
   const headerMap = buildHeaderMap(headers);
   const record: Partial<CrmLeadRecord> = {};
   let note = "";
   const usedHeaders = new Set(Object.values(headerMap).filter(Boolean) as string[]);
+
+  const nameParts = findNamePartsHeaders(headers);
+  if (nameParts.first) usedHeaders.add(nameParts.first);
+  if (nameParts.last) usedHeaders.add(nameParts.last);
 
   for (const [field, sourceHeader] of Object.entries(headerMap) as [
     keyof CrmLeadRecord,
@@ -316,6 +347,14 @@ function mapRow(headers: string[], row: Record<string, string>): Partial<CrmLead
       // handled via phone column below
     } else {
       record[field] = value;
+    }
+  }
+
+  if (!record.name) {
+    const firstVal = nameParts.first ? String(row[nameParts.first] ?? "").trim() : "";
+    const lastVal = nameParts.last ? String(row[nameParts.last] ?? "").trim() : "";
+    if (firstVal || lastVal) {
+      record.name = [firstVal, lastVal].filter(Boolean).join(" ");
     }
   }
 

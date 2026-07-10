@@ -171,6 +171,20 @@ describe("AI helpers", () => {
     });
     expect(mapping.mappings.some((m) => m.target_field === "email")).toBe(true);
   });
+
+  it("heuristic maps and merges first/last name columns", async () => {
+    const provider = new HeuristicProvider();
+    const result = await provider.extractRecords({
+      headers: ["First Name", "Last Name", "Email", "Mobile"],
+      rows: [{ "First Name": "Grace", "Last Name": "Hopper", Email: "grace@hopper.com", Mobile: "9876543210" }],
+      mappings: [
+        { source_column: "Email", target_field: "email", confidence: 100, status: "mapped", ai_reason: "test" },
+        { source_column: "Mobile", target_field: "mobile_without_country_code", confidence: 100, status: "mapped", ai_reason: "test" }
+      ],
+      startRowNumber: 1
+    });
+    expect(result.records[0].name).toBe("Grace Hopper");
+  });
 });
 
 describe("pkce", () => {

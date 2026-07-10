@@ -204,4 +204,34 @@ describe("Comprehensive CSV Import Scenarios", () => {
     expect(getSkipReason(results[1])).toBeNull(); // Import
     expect(getSkipReason(results[2])).toBe("Record has neither email nor mobile number"); // Skip
   });
+
+  it("Scenario 6: First Name and Last Name Merging", () => {
+    const headers = ["First Name", "Last Name", "Email", "Phone"];
+    const rows = [
+      {
+        "First Name": "Grace",
+        "Last Name": "Hopper",
+        Email: "grace@computer.org",
+        Phone: "1234567890"
+      },
+      {
+        "First Name": "Alan",
+        "Last Name": "",
+        Email: "alan@turing.org",
+        Phone: "1234567891"
+      },
+      {
+        "First Name": "",
+        "Last Name": "Lovelace",
+        Email: "ada@lovelace.org",
+        Phone: "1234567892"
+      }
+    ];
+
+    const results = heuristicExtractBatch(headers, rows).map(sanitizeCrmRecord);
+
+    expect(results[0].name).toBe("Grace Hopper");
+    expect(results[1].name).toBe("Alan");
+    expect(results[2].name).toBe("Lovelace");
+  });
 });

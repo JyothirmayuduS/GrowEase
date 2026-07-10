@@ -86,9 +86,26 @@ export class HeuristicProvider implements AIProvider {
       if (emailInfo.extras.length) note = sanitizeNote(`${note} Extra emails: ${emailInfo.extras.join(", ")}`);
       if (phoneInfo.extras.length) note = sanitizeNote(`${note} Extra phones: ${phoneInfo.extras.join(", ")}`);
 
+      let nameVal = get("name");
+      if (!nameVal) {
+        const firstKey = Object.keys(row).find((k) => {
+          const key = k.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+          return ["first_name", "firstname", "given_name", "first", "fname"].includes(key);
+        });
+        const lastKey = Object.keys(row).find((k) => {
+          const key = k.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+          return ["last_name", "lastname", "surname", "family_name", "last", "lname"].includes(key);
+        });
+        const firstVal = firstKey ? (row[firstKey] || "").trim() : "";
+        const lastVal = lastKey ? (row[lastKey] || "").trim() : "";
+        if (firstVal || lastVal) {
+          nameVal = [firstVal, lastVal].filter(Boolean).join(" ");
+        }
+      }
+
       return {
         created_at: parseCreatedAt(get("created_at")),
-        name: get("name"),
+        name: nameVal,
         email: emailInfo.primary,
         country_code: phoneInfo.country_code,
         mobile_without_country_code: phoneInfo.mobile_without_country_code,
