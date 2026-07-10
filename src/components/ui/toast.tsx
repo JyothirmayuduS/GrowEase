@@ -29,7 +29,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     (toast: Omit<ToastItem, "id">) => {
       const id = crypto.randomUUID();
       setToasts((current) => [...current.slice(-2), { ...toast, id }]);
-      window.setTimeout(() => dismiss(id), 4800);
+      window.setTimeout(() => dismiss(id), 4000);
     },
     [dismiss]
   );
@@ -39,25 +39,43 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
+      {/*
+       * Mobile  : bottom of screen, safe-area-aware, full width with 16px inset
+       * Desktop : top-right corner, compact 22rem width
+       */}
       <div
-        className="pointer-events-none fixed top-4 right-4 z-[200] flex w-[min(100vw-2rem,22rem)] flex-col gap-2"
+        className={cn(
+          "pointer-events-none fixed z-[200] flex flex-col gap-2",
+          /* Mobile: bottom + safe area */
+          "bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 right-4",
+          /* Desktop: top-right */
+          "md:bottom-auto md:left-auto md:right-4 md:top-4 md:w-[min(100vw-2rem,22rem)]"
+        )}
         aria-live="polite"
       >
         {toasts.map((toast) => (
           <div
             key={toast.id}
             className={cn(
-              "toast-enter pointer-events-auto flex items-start gap-3 rounded-lg border bg-white/95 p-3.5 shadow-[0_8px_30px_rgba(0,0,0,0.12)] backdrop-blur-md dark:bg-slate-900/95",
+              "toast-enter pointer-events-auto flex items-start gap-3",
+              /* Mobile: full-width, 16px radius, compact padding */
+              "rounded-2xl border p-3 shadow-[0_8px_30px_rgba(0,0,0,0.14)] backdrop-blur-md",
+              /* Desktop: slightly more padding */
+              "md:rounded-lg md:p-3.5",
+              "bg-white/97 dark:bg-slate-900/97",
               toast.variant === "success"
                 ? "border-green-200/80 dark:border-green-900/80"
                 : "border-red-200/80 dark:border-red-900/80"
             )}
           >
+            {/* Icon — 18px, vertically centered with title */}
             {toast.variant === "success" ? (
-              <CheckCircle2 className="mt-0.5 h-4.5 w-4.5 h-[18px] w-[18px] shrink-0 text-green-600" />
+              <CheckCircle2 className="mt-0.5 h-[18px] w-[18px] shrink-0 text-green-600" />
             ) : (
               <XCircle className="mt-0.5 h-[18px] w-[18px] shrink-0 text-red-600" />
             )}
+
+            {/* Text */}
             <div className="min-w-0 flex-1">
               <p className="text-[13px] font-semibold leading-snug text-[var(--ge-text)] dark:text-slate-50">
                 {toast.title}
@@ -68,13 +86,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 </p>
               )}
             </div>
+
+            {/* Dismiss — 44×44 touch target */}
             <button
               type="button"
               onClick={() => dismiss(toast.id)}
-              className="shrink-0 rounded-md p-1 text-[var(--ge-text-muted)] transition-colors hover:bg-[var(--ge-surface)] dark:hover:bg-slate-800"
+              className="-mr-1 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[var(--ge-text-muted)] transition-colors hover:bg-[var(--ge-surface)] hover:text-[var(--ge-text)] dark:hover:bg-slate-800 md:h-7 md:w-7 md:rounded-md"
               aria-label="Dismiss"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         ))}

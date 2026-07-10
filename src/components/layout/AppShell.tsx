@@ -16,10 +16,14 @@ export function AppShell({ children, showSidebar = true, className }: AppShellPr
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--ge-page-bg)]">
+    /*
+     * Mobile  : normal document flow — body scrolls, no height trap
+     * Desktop : classic sidebar layout — h-screen, overflow-hidden flex row
+     */
+    <div className="flex min-h-dvh flex-col bg-[var(--ge-page-bg)] md:h-screen md:flex-row md:overflow-hidden">
       {/* Desktop Sidebar (hidden on mobile) */}
       {showSidebar && (
-        <div className="hidden md:flex h-full shrink-0">
+        <div className="hidden h-full shrink-0 md:flex">
           <Sidebar />
         </div>
       )}
@@ -53,7 +57,7 @@ export function AppShell({ children, showSidebar = true, className }: AppShellPr
       )}
 
       {/* Main Content Area */}
-      <div className={cn("flex min-h-0 min-w-0 flex-1 flex-col", className)}>
+      <div className={cn("flex min-w-0 flex-1 flex-col", className)}>
         {/* Mobile Header Bar */}
         {showSidebar && (
           <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#2a2a2a] bg-[#141414] px-4 text-white md:hidden">
@@ -69,7 +73,15 @@ export function AppShell({ children, showSidebar = true, className }: AppShellPr
           </header>
         )}
 
-        <main className="flex min-h-0 flex-1 flex-col overflow-auto md:overflow-hidden">{children}</main>
+        {/*
+         * Mobile  : flex-col, no overflow constraint — body scrolls
+         * Desktop : min-h-0 overflow-hidden for nested scroll regions
+         */}
+        <main className={cn(
+          "flex flex-1 flex-col md:min-h-0 md:overflow-hidden",
+        )}>
+          {children}
+        </main>
       </div>
     </div>
   );

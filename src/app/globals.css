@@ -376,29 +376,52 @@
     border-spacing: 0;
   }
 
-  /* =================================================================
-   * MOBILE STICKY KILL SWITCH — Mobile (<768px): disable ALL sticky.
-   * Desktop/tablet (>=768px): sticky operates normally via md: classes.
-   * Modals, dialogs, and toasts use `fixed` and are explicitly excluded.
-   * ================================================================= */
+  /* ================================================================
+   * MOBILE LAYOUT — Complete Override (<768px)
+   *
+   * Goals:
+   *   1. The body is the ONLY vertical scroll container
+   *   2. Tables scroll horizontally with momentum on iOS
+   *   3. ZERO sticky positioning anywhere in the layout
+   *   4. Modals/toasts use `fixed` (not `sticky`) — unaffected
+   * ================================================================ */
   @media (max-width: 767px) {
-    /* Table internals — ge-results-table (CsvPreviewSection, CrmResultsSection) */
+    /* 1. Nuclear sticky kill — catches all Tailwind sticky classes and
+          any position:sticky defined anywhere in the component tree */
+    .sticky {
+      position: static !important;
+    }
+
+    /* 2. Table cells — belt-and-suspenders reset */
+    table thead,
+    table thead *,
+    table th,
+    table td,
+    .ge-results-table,
     .ge-results-table thead,
     .ge-results-table thead *,
     .ge-results-table tbody,
     .ge-results-table th,
     .ge-results-table td {
       position: static !important;
-      left: auto !important;
       top: auto !important;
+      left: auto !important;
     }
 
-    /* All other tables (data-table, virtual-table, any future tables) */
-    table thead,
-    table thead * {
-      position: static !important;
-      top: auto !important;
-      left: auto !important;
+    /* 3. Tables: horizontal scroll with iOS momentum */
+    .ge-results-table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+    }
+
+    /* 4. Remove any height traps that create nested scroll regions */
+    .ge-table-scroll {
+      overflow: visible !important;
+      height: auto !important;
+      max-height: none !important;
     }
   }
 

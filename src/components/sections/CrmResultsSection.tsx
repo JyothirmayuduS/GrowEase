@@ -204,7 +204,7 @@ export function CrmResultsSection({
 
   return (
     <LeadSourcesPage title="Import results">
-      <div className="ge-scroll-quiet flex h-full min-h-0 flex-1 flex-col overflow-auto bg-[var(--ge-page)]">
+      <div className="ge-scroll-quiet flex flex-1 flex-col bg-[var(--ge-page)] md:min-h-0 md:overflow-auto">
         <div className="mx-auto w-full max-w-[1400px] px-4 py-5 sm:px-8 sm:py-8">
           <div className="mb-5 flex flex-col gap-4 border-b border-[var(--ge-border)] pb-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
@@ -279,7 +279,7 @@ export function CrmResultsSection({
             className="mb-5"
           />
 
-          <div className="overflow-x-auto rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] md:overflow-hidden">
+          <div className="w-full overflow-x-auto rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] md:overflow-hidden">
             {filter === "skipped" ? (
               skipped === 0 ? (
                 <div className="px-6 py-16 text-center text-[13px] text-[var(--ge-text-secondary)]">
@@ -297,7 +297,7 @@ export function CrmResultsSection({
                     : "No imported records."}
               </div>
             ) : (
-              <div className="ge-table-scroll overflow-x-auto">
+              <div className="ge-table-scroll md:overflow-x-auto">
                 <table
                   className="ge-results-table table-fixed"
                   style={{ width: totalWidth }}

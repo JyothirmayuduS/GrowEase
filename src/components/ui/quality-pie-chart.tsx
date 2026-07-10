@@ -79,13 +79,63 @@ export function QualityPieChart({
   const showTip = Boolean(hovered);
 
   return (
-    <div
-      className={cn(
-        "relative flex items-center gap-4 rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] px-4 py-3",
-        className
-      )}
-      onMouseLeave={() => setHovered(null)}
-    >
+    <>
+      {/* ── Mobile: compact horizontal stat strip (no donut chart) ── */}
+      <div
+        className={cn(
+          "flex items-center gap-2 rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] px-3 py-2.5 md:hidden",
+          className
+        )}
+      >
+        {SLICES.map((s) => {
+          const count = summary[s.countKey];
+          const selected = active === s.key;
+          return (
+            <button
+              key={s.key}
+              type="button"
+              disabled={!interactive || count === 0}
+              onClick={() => onSelect?.(s.key)}
+              aria-pressed={interactive ? selected : undefined}
+              className={cn(
+                "inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border py-1.5 text-[11px] font-semibold transition-colors",
+                selected
+                  ? "border-[var(--ge-border-strong)] bg-[var(--ge-panel)] text-[var(--ge-text)]"
+                  : "border-[var(--ge-border)] bg-[var(--ge-card)] text-[var(--ge-text-secondary)]",
+                count === 0 && "opacity-40",
+              )}
+            >
+              <span
+                className="h-2 w-2 shrink-0 rounded-full"
+                style={{ background: s.color }}
+                aria-hidden
+              />
+              <span className="font-mono tabular-nums">{count}</span>
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => onSelect?.("all")}
+          className={cn(
+            "inline-flex shrink-0 items-center justify-center gap-1 rounded-full border px-2.5 py-1.5 text-[11px] font-semibold transition-colors",
+            active === "all"
+              ? "border-[var(--ge-accent)] bg-[var(--ge-accent-tint)] text-[var(--ge-accent)]"
+              : "border-[var(--ge-border)] bg-[var(--ge-card)] text-[var(--ge-text-secondary)]",
+          )}
+        >
+          All
+        </button>
+      </div>
+
+      {/* ── Tablet / Desktop: full donut chart ── */}
+      <div
+        className={cn(
+          "relative hidden items-center gap-4 rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] px-4 py-3 md:flex",
+          className
+        )}
+        onMouseLeave={() => setHovered(null)}
+      >
       <div className="relative shrink-0" style={{ width: size, height: size }}>
         <svg
           width={size}
@@ -260,6 +310,7 @@ export function QualityPieChart({
           ))}
         </ul>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

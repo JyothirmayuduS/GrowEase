@@ -125,7 +125,7 @@ export function CsvPreviewSection({
           </>
         }
       >
-        <div className="flex h-full min-h-0 flex-1 flex-col gap-3 overflow-hidden bg-[var(--ge-page)] p-0 sm:gap-4">
+        <div className="flex flex-1 flex-col gap-3 bg-[var(--ge-page)] p-0 sm:gap-4 md:min-h-0 md:overflow-hidden">
           {errorMessage && (
             <div
               role="alert"
@@ -201,7 +201,7 @@ export function CsvPreviewSection({
 
           <QualityPieChart summary={summary} active={filter} onSelect={setFilter} />
 
-          <div className="flex min-h-0 flex-1 flex-col overflow-x-auto rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] md:overflow-hidden">
+          <div className="w-full overflow-x-auto rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] md:flex md:min-h-0 md:flex-1 md:flex-col">
             {headers.length === 0 ? (
               <EmptyPreview />
             ) : visible.length === 0 ? (
@@ -209,7 +209,7 @@ export function CsvPreviewSection({
                 No rows match this filter. Choose another quality state above.
               </div>
             ) : (
-              <div className="ge-table-scroll relative min-h-0 flex-1 overflow-auto">
+              <div className="ge-table-scroll md:relative md:min-h-0 md:flex-1 md:overflow-auto">
                 <table
                   className="ge-results-table table-fixed text-left"
                   style={{ width: totalWidth }}

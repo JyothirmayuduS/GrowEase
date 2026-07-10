@@ -22,7 +22,9 @@ export function LeadSourcesPage({
   return (
     <div
       className={cn(
-        "flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[var(--ge-page)]",
+        /* Mobile: normal block flow, no overflow trap */
+        /* Desktop: fill remaining height in the sidebar layout */
+        "flex flex-1 flex-col bg-[var(--ge-page)] md:min-h-0 md:overflow-hidden",
         className
       )}
     >
@@ -44,7 +46,8 @@ export function LeadSourcesPage({
         <ThemeToggle />
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
+      {/* Mobile: scroll naturally. Desktop: nested overflow-hidden for sidebar. */}
+      <div className="flex flex-1 flex-col md:min-h-0 md:overflow-hidden">{children}</div>
     </div>
   );
 }

@@ -27,7 +27,9 @@ export function ImportPanel({
   return (
     <div
       className={cn(
-        "flex h-full min-h-0 flex-1 flex-col bg-[var(--ge-page)]",
+        /* Mobile: normal block flow — body is the scroll container */
+        /* Desktop: fill the remaining height within the sidebar layout */
+        "flex flex-1 flex-col bg-[var(--ge-page)] md:min-h-0",
         className
       )}
     >
@@ -58,7 +60,11 @@ export function ImportPanel({
         </div>
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-4 sm:px-6 sm:py-5 [&>*]:min-h-0">
+      {/*
+       * Mobile  : no overflow clipping, padding only, children scroll with body
+       * Desktop : min-h-0 + overflow-hidden re-enables the nested scroll region
+       */}
+      <div className="flex flex-1 flex-col px-4 py-4 sm:px-6 sm:py-5 md:min-h-0 md:overflow-hidden [&>*]:min-h-0">
         {children}
       </div>
 
