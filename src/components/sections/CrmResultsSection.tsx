@@ -37,16 +37,16 @@ const RESULTS_COL_KEYS = [
 
 const RESULTS_DEFAULTS: Record<string, number> = {
   "#": 52,
-  __status: 200,
-  name: 150,
-  email: 180,
-  country: 90,
-  mobile: 130,
-  company: 140,
-  city: 110,
-  state: 110,
-  lead_owner: 140,
-  crm_stage: 150,
+  __status: 280,
+  name: 180,
+  email: 240,
+  country: 100,
+  mobile: 140,
+  company: 180,
+  city: 140,
+  state: 140,
+  lead_owner: 180,
+  crm_stage: 180,
 };
 
 const FIELD_REASON_LABEL: Partial<Record<keyof CrmLeadRecord, string>> = {
@@ -190,7 +190,7 @@ export function CrmResultsSection({
 
   return (
     <LeadSourcesPage title="Import results">
-      <div className="flex h-full min-h-0 flex-1 flex-col overflow-auto bg-[var(--ge-page)]">
+      <div className="ge-scroll-quiet flex h-full min-h-0 flex-1 flex-col overflow-auto bg-[var(--ge-page)]">
         <div className="mx-auto w-full max-w-[1400px] px-4 py-5 sm:px-8 sm:py-8">
           <div className="mb-5 flex flex-col gap-4 border-b border-[var(--ge-border)] pb-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
@@ -284,7 +284,7 @@ export function CrmResultsSection({
               </div>
             ) : (
               <div className="ge-table-scroll overflow-x-auto">
-                <table className="ge-results-table w-full min-w-max table-fixed">
+                <table className="ge-results-table w-full min-w-max">
                   <caption className="sr-only">
                     Import results. {summary.clean} clean, {summary.needsReview} need review,{" "}
                     {summary.skipped} skipped. Drag column edges to resize.
@@ -371,7 +371,7 @@ export function CrmResultsSection({
                         >
                           <td
                             className={cn(
-                              "ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3.5 py-2.5 font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
+                              "ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3.5 py-2.5 align-top font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
                               edge
                             )}
                             style={{ ...colStyle(widths["#"]), left: leftHash }}
@@ -379,13 +379,13 @@ export function CrmResultsSection({
                             {index + 1}
                           </td>
                           <td
-                            className="ge-col-rule sticky z-[1] overflow-visible bg-[var(--ge-card)] px-3.5 py-2.5 group-hover:bg-[var(--ge-panel)]"
+                            className="ge-col-rule sticky z-[1] overflow-visible bg-[var(--ge-card)] px-3.5 py-2.5 align-top group-hover:bg-[var(--ge-panel)]"
                             style={{ ...colStyle(widths.__status), left: leftStatus }}
                           >
                             <RowStateBadge state={state} variant="plain" reasons={reasons} />
                           </td>
                           <td
-                            className="ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3.5 py-2.5 text-[13px] font-semibold group-hover:bg-[var(--ge-panel)]"
+                            className="ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3.5 py-2.5 align-top text-[13px] font-semibold group-hover:bg-[var(--ge-panel)]"
                             style={{ ...colStyle(widths.name), left: leftName }}
                           >
                             <FieldValue
@@ -485,7 +485,7 @@ function OutcomeBadge({ outcome }: { outcome: "complete" | "partial" | "failed" 
   );
 }
 
-/** Single-line cell: colored text when flagged; reason via title/aria only. */
+/** Full cell text — wraps instead of truncating with … */
 function FieldValue({
   value,
   issue,
@@ -506,7 +506,7 @@ function FieldValue({
   return (
     <span
       className={cn(
-        "block max-w-[220px] truncate text-[13px] leading-5",
+        "block whitespace-normal break-words text-[13px] leading-5",
         mono && "font-mono",
         strong && "font-semibold",
         flagged
@@ -551,7 +551,7 @@ function Td({
   return (
     <td
       className={cn(
-        "overflow-hidden whitespace-nowrap px-3.5 py-2.5",
+        "align-top whitespace-normal break-words px-3.5 py-2.5",
         last ? "ge-col-rule-last" : "ge-col-rule",
         className
       )}
@@ -590,9 +590,11 @@ function SkippedTable({ rows }: { rows: SkippedRecord[] }) {
               </Td>
               <Td
                 last
-                className="max-w-[480px] truncate font-mono text-[12.5px] text-[var(--ge-text-secondary)]"
+                className="font-mono text-[12.5px] text-[var(--ge-text-secondary)]"
               >
-                {formatSkippedRaw(row.raw)}
+                <span className="block whitespace-normal break-all">
+                  {formatSkippedRaw(row.raw)}
+                </span>
               </Td>
             </tr>
           ))}

@@ -44,7 +44,7 @@ export function VirtualTable({
   return (
     <div
       ref={parentRef}
-      className={cn("h-full overflow-auto", isStyled && "scrollbar-thin", className)}
+      className={cn("ge-scroll-quiet h-full overflow-auto", className)}
       style={{ maxHeight }}
     >
       <table className="w-full min-w-max border-collapse text-sm">
@@ -156,12 +156,10 @@ export function VirtualTable({
                         >
                           <span
                             className={cn(
-                              "block truncate",
-                              header === "SOURCE DATA" ? "max-w-[420px]" : "max-w-[200px]",
+                              "block whitespace-normal break-words",
                               isEmpty && "text-slate-300 dark:text-slate-600",
                               isReason && !isEmpty && "font-medium text-amber-700 dark:text-amber-400"
                             )}
-                            title={value}
                           >
                             {isEmpty ? "—" : value}
                           </span>

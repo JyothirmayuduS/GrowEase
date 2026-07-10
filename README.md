@@ -7,6 +7,16 @@ Production-style CSV → GrowEasy CRM mapper for Indian real-estate lead gen. Up
 
 > Cold-open check: open https://growease.vercel.app/api/health — expect `"status":"ok"` and `"aiConfigured":true` with no setup steps.
 
+## Backend API (GrowEasy AI Importer)
+
+Express + Supabase backend lives in **`apps/api`**.
+
+- Schema + RLS: `supabase/migrations/`
+- Docs: [`apps/api/README.md`](apps/api/README.md)
+- Setup: `cd apps/api && cp .env.example .env && npm install && npm run dev`
+
+The Next.js UI in this repo is separate; the API is the source of truth for imports, auth JWT validation, and Drive/Outlook/OneDrive OAuth.
+
 ## What this is (not a toy parser)
 
 The hard part is **field mapping under messy, unseen headers** — not CSV parsing. The pipeline is built so:
@@ -88,6 +98,12 @@ OPENAI_MODEL=gpt-4o-mini
 ```
 
 Without a key, import still runs via **heuristic** header mapping (useful for demos; set a key for evaluation).
+
+### Real OAuth (Google Drive, OneDrive, Facebook, Google Ads)
+
+See **[docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)** and the in-app page **`/settings/integrations`**.
+
+You must create apps in Google Cloud, Microsoft Entra, and Meta, then paste Client IDs/Secrets into `.env.local` (template in `.env.example`). Until those keys exist, Connect buttons open the setup guide instead of a fake flow.
 
 ## API
 

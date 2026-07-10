@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Phone, Headphones } from "lucide-react";
 
 import { AppPage } from "@/components/layout/AppPage";
@@ -8,10 +11,27 @@ import {
   PageSection,
   StatusPill,
 } from "@/components/ui/enterprise";
+import { useToast } from "@/components/ui/toast";
 
-export const metadata = { title: "Tele Calling" };
+const QUEUES = [
+  { id: "dnc", name: "Did not connect — retry", leads: "24", priority: "High", tone: "success" as const },
+  { id: "follow", name: "Good lead follow-up", leads: "18", priority: "Medium", tone: "success" as const },
+  { id: "fresh", name: "Fresh CSV imports", leads: "9", priority: "High", tone: "accent" as const },
+];
 
 export default function TeleCallingPage() {
+  const router = useRouter();
+  const { showToast } = useToast();
+
+  const dial = (queueName: string) => {
+    showToast({
+      title: "Dialer session started",
+      description: `Opening Engage with queue: ${queueName}`,
+      variant: "success",
+    });
+    router.push("/leads/engage");
+  };
+
   return (
     <AppPage
       title="Dialer"
@@ -45,41 +65,29 @@ export default function TeleCallingPage() {
       <PageSection title="Queues" description="Auto-built from CRM stage + import flags">
         <EnterpriseTable
           headers={["Queue", "Leads", "Priority", "Status", ""]}
-          rows={[
-            [
-              "Did not connect — retry",
-              "24",
-              "High",
-              <StatusPill key="1" label="Active" tone="success" />,
-              <button key="a1" type="button" className="inline-flex items-center gap-1 text-[12px] font-semibold text-[var(--ge-accent)]">
-                <Phone className="h-3 w-3" /> Dial
-              </button>,
-            ],
-            [
-              "Good lead follow-up",
-              "18",
-              "Medium",
-              <StatusPill key="2" label="Active" tone="success" />,
-              <button key="a2" type="button" className="inline-flex items-center gap-1 text-[12px] font-semibold text-[var(--ge-accent)]">
-                <Phone className="h-3 w-3" /> Dial
-              </button>,
-            ],
-            [
-              "Fresh CSV imports",
-              "9",
-              "High",
-              <StatusPill key="3" label="Active" tone="accent" />,
-              <button key="a3" type="button" className="inline-flex items-center gap-1 text-[12px] font-semibold text-[var(--ge-accent)]">
-                <Phone className="h-3 w-3" /> Dial
-              </button>,
-            ],
-          ]}
+          rows={QUEUES.map((q) => [
+            q.name,
+            q.leads,
+            q.priority,
+            <StatusPill key={`${q.id}-s`} label="Active" tone={q.tone} />,
+            <button
+              key={`${q.id}-d`}
+              type="button"
+              onClick={() => dial(q.name)}
+              className="inline-flex items-center gap-1 text-[12px] font-semibold text-[var(--ge-accent)] hover:underline"
+            >
+              <Phone className="h-3 w-3" /> Dial
+            </button>,
+          ])}
         />
       </PageSection>
 
       <p className="text-[13px] text-[var(--ge-text-secondary)]">
         New imports land here after mapping.{" "}
-        <Link href="/lead-sources" className="inline-flex items-center gap-1 font-semibold text-[var(--ge-accent)] hover:underline">
+        <Link
+          href="/lead-sources"
+          className="inline-flex items-center gap-1 font-semibold text-[var(--ge-accent)] hover:underline"
+        >
           Import CSV <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </p>

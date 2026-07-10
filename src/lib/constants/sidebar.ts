@@ -18,6 +18,7 @@ export const SIDEBAR_CONTROL: SidebarItem[] = [
   { label: "Ad Accounts", href: "/integrations/ads" },
   { label: "WhatsApp Account", href: "/integrations/whatsapp" },
   { label: "Tele Calling", href: "/integrations/tele-calling" },
+  { label: "Integrations setup", href: "/settings/integrations" },
   { label: "CRM Fields", href: "/settings/crm-fields" },
   { label: "API Center", href: "/settings/api" },
 ];

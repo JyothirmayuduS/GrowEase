@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 const MIN_WIDTH = 72;
-const MAX_WIDTH = 560;
+const MAX_WIDTH = 1200;
 
 function clamp(n: number) {
   return Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, Math.round(n)));

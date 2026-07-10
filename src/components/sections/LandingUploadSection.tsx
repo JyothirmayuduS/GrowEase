@@ -124,7 +124,7 @@ export function LandingUploadSection({ onFileSelect }: LandingUploadSectionProps
             </p>
 
             <div className="mt-4">
-              <CloudStorageButtons variant="compact" />
+              <CloudStorageButtons variant="compact" onFileSelect={onFileSelect} />
             </div>
           </div>
         </div>

@@ -287,6 +287,79 @@
   }
 
   /*
+   * Minimal theme-matched scrollbars (site-wide).
+   * Thin, quiet track; thumb uses border tokens so it blends with GrowEasy chrome.
+   */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ge-border-strong) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--ge-border-strong);
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--ge-text-muted);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Even quieter on tables / panels — nearly invisible until hover */
+  .ge-table-scroll,
+  .ge-scroll-quiet {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .ge-table-scroll:hover,
+  .ge-scroll-quiet:hover {
+    scrollbar-color: var(--ge-border-strong) transparent;
+  }
+
+  .ge-table-scroll::-webkit-scrollbar,
+  .ge-scroll-quiet::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .ge-table-scroll::-webkit-scrollbar-thumb,
+  .ge-scroll-quiet::-webkit-scrollbar-thumb {
+    background-color: transparent;
+  }
+
+  .ge-table-scroll:hover::-webkit-scrollbar-thumb,
+  .ge-scroll-quiet:hover::-webkit-scrollbar-thumb {
+    background-color: var(--ge-border-strong);
+  }
+
+  .dark * {
+    scrollbar-color: color-mix(in srgb, var(--ge-border-strong) 80%, transparent) transparent;
+  }
+
+  .dark *::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--ge-border-strong) 80%, transparent);
+  }
+
+  .dark *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--ge-text-muted);
+  }
+
+  /*
    * Vertical column rules that survive sticky cells + border-collapse.
    * Prefer inset box-shadow over border-r (sticky backgrounds paint over borders).
    */

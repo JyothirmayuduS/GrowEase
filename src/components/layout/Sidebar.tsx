@@ -90,7 +90,7 @@ export function Sidebar() {
         </Link>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-2 py-4 min-[980px]:px-3" aria-label="Main">
+      <nav className="ge-scroll-quiet flex-1 overflow-y-auto px-2 py-4 min-[980px]:px-3" aria-label="Main">
         <SidebarGroup label="Main" items={SIDEBAR_MAIN} pathname={pathname} />
         <SidebarGroup
           label="Control center"

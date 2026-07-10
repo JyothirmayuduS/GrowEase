@@ -75,7 +75,7 @@ export function CsvPreviewSection({
   const defaults = useMemo(() => {
     const d: Record<string, number> = {
       "#": 52,
-      __status: 200,
+      __status: 280,
     };
     for (const h of headers) d[h] = h === stickyHeader ? 160 : 140;
     return d;
@@ -205,7 +205,7 @@ export function CsvPreviewSection({
               </div>
             ) : (
               <div className="ge-table-scroll relative min-h-0 flex-1 overflow-auto">
-                <table className="ge-results-table w-full min-w-max table-fixed text-left">
+                <table className="ge-results-table w-full min-w-max text-left">
                   <caption className="sr-only">
                     CSV preview with row quality. {summary.clean} clean, {summary.needsReview} need
                     review, {summary.skipped} skipped. Drag column edges to resize.
@@ -304,7 +304,7 @@ export function CsvPreviewSection({
                         >
                           <td
                             className={cn(
-                              "ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3 py-2.5 font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
+                              "ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3 py-2.5 align-top font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
                               edge
                             )}
                             style={{ ...colStyle(widths["#"]), left: leftHash }}
@@ -312,7 +312,7 @@ export function CsvPreviewSection({
                             {index + 1}
                           </td>
                           <td
-                            className="ge-col-rule sticky z-[1] overflow-visible bg-[var(--ge-card)] px-3 py-2.5 group-hover:bg-[var(--ge-panel)]"
+                            className="ge-col-rule sticky z-[1] overflow-visible bg-[var(--ge-card)] px-3 py-2.5 align-top group-hover:bg-[var(--ge-panel)]"
                             style={{ ...colStyle(widths.__status), left: leftStatus }}
                           >
                             <RowStateBadge
@@ -322,7 +322,7 @@ export function CsvPreviewSection({
                             />
                           </td>
                           <td
-                            className="ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3 py-2.5 group-hover:bg-[var(--ge-panel)]"
+                            className="ge-col-rule sticky z-[1] bg-[var(--ge-card)] px-3 py-2.5 align-top group-hover:bg-[var(--ge-panel)]"
                             style={{
                               ...colStyle(widths[stickyHeader] ?? 160),
                               left: leftFirst,
@@ -341,7 +341,7 @@ export function CsvPreviewSection({
                             <td
                               key={header}
                               className={cn(
-                                "ge-col-rule px-3 py-2.5",
+                                "ge-col-rule px-3 py-2.5 align-top",
                                 i === otherHeaders.length - 1 && "shadow-none"
                               )}
                               style={colStyle(widths[header] ?? 140)}
@@ -382,9 +382,9 @@ function PreviewCell({
     return <span className="text-[12.5px] italic text-[var(--ge-text-muted)]">—</span>;
   }
   return (
-    <div className="flex min-w-0 flex-col gap-1 overflow-hidden">
+    <div className="flex min-w-0 flex-col gap-1">
       {trimmed ? (
-        <span className="truncate font-mono text-[12.5px] text-[var(--ge-text)]" title={trimmed}>
+        <span className="whitespace-normal break-words font-mono text-[12.5px] leading-5 text-[var(--ge-text)]">
           {trimmed}
         </span>
       ) : null}

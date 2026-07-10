@@ -1,5 +1,6 @@
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 
+import { ChunkErrorReload } from "@/components/system/chunk-error-reload";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { ToastProvider } from "@/components/ui/toast";
 
@@ -45,6 +46,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-[var(--ge-page-bg)] font-sans text-[var(--ge-text)] antialiased dark:bg-slate-950 dark:text-slate-50">
         <ThemeProvider>
+          <ChunkErrorReload />
           <ToastProvider>{children}</ToastProvider>
         </ThemeProvider>
       </body>

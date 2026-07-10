@@ -87,7 +87,7 @@ export function ResizableTh({
   );
 }
 
-/** Apply the same fixed width to a body cell. */
+/** Preferred column size — content may grow wider; no max clamp that forces … */
 export function colStyle(width: number): React.CSSProperties {
-  return { width, minWidth: width, maxWidth: width };
+  return { minWidth: width, width };
 }

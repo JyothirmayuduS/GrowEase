@@ -67,11 +67,7 @@ export function RowStateBadge({
   const allReasons = (reasons?.length ? reasons : reason ? [reason] : []).filter(Boolean);
   const hasDetails = allReasons.length > 0;
   const preview =
-    allReasons.length === 0
-      ? null
-      : allReasons.length === 1
-        ? allReasons[0]
-        : `${allReasons[0]} +${allReasons.length - 1}`;
+    allReasons.length === 0 ? null : allReasons.join(" · ");
 
   useLayoutEffect(() => {
     if (!open || !triggerRef.current) {
@@ -114,12 +110,12 @@ export function RowStateBadge({
         )}
       >
         <Icon className="h-3 w-3 shrink-0" aria-hidden="true" />
-        <span className="min-w-0">
-          <span className="whitespace-nowrap">{meta.label}</span>
+        <span className="min-w-0 whitespace-normal break-words">
+          <span>{meta.label}</span>
           {preview ? (
             <span className="font-normal">
               {" "}
-              — <span>{preview}</span>
+              — {preview}
             </span>
           ) : null}
         </span>
@@ -170,7 +166,7 @@ export function FieldFlagBadge({ label }: { label: string }) {
   return (
     <span className="inline-flex max-w-full items-center gap-1 rounded-[var(--ge-radius-sm)] border border-[var(--ge-warning-border)] bg-[var(--ge-warning-tint)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--ge-warning-on-tint)]">
       <AlertTriangle className="h-3 w-3 shrink-0" aria-hidden="true" />
-      <span className="truncate">{label}</span>
+      <span className="whitespace-normal break-words">{label}</span>
     </span>
   );
 }

@@ -10,7 +10,7 @@ import { AiProcessingSection } from "@/components/sections/AiProcessingSection";
 import { ImportProcessingSection } from "@/components/sections/ImportProcessingSection";
 import { CrmResultsSection } from "@/components/sections/CrmResultsSection";
 import { CsvPreviewSection } from "@/components/sections/CsvPreviewSection";
-import { LandingUploadSection } from "@/components/sections/LandingUploadSection";
+import { CsvUploadSection } from "@/components/sections/CsvUploadSection";
 import { useToast } from "@/components/ui/toast";
 import { pushImportHistory, upsertImportedLeads } from "@/lib/store/import-history";
 import type { ImportApiResponse } from "@/lib/types/crm";
@@ -23,7 +23,7 @@ function wait(ms: number): Promise<void> {
 
 export function HomeClient() {
   const { showToast } = useToast();
-  const [view, setView] = useState<AppView>("landing");
+  const [view, setView] = useState<AppView>("upload");
   const [parsedCsv, setParsedCsv] = useState<ParsedCsv | null>(null);
   const [importResult, setImportResult] = useState<ImportApiResponse | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
@@ -41,6 +41,22 @@ export function HomeClient() {
   useEffect(() => {
     void fetch("/api/health", { cache: "no-store" }).catch(() => undefined);
   }, []);
+
+  // After Drive / OneDrive OAuth redirect back to Lead Sources
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const connected = params.get("connected");
+    if (connected === "google-drive" || connected === "onedrive") {
+      showToast({
+        title:
+          connected === "google-drive" ? "Google Drive connected" : "OneDrive connected",
+        description: "Click the Drive / OneDrive button again to pick a CSV.",
+        variant: "success",
+      });
+      window.history.replaceState({}, "", "/lead-sources");
+    }
+  }, [showToast]);
 
   const handleFileSelect = useCallback(
     async (file: File) => {
@@ -107,7 +123,7 @@ export function HomeClient() {
           title: "Parse failed",
           description: message,
         });
-        setView("landing");
+        setView("upload");
       }
     },
     [showToast]
@@ -245,15 +261,12 @@ export function HomeClient() {
     setLoaderStatus("Reading CSV");
     setLoaderFileName("");
     setLoaderSessionKey("parse");
-    setView("landing");
+    // In-shell Lead Sources upload (sidebar + card) — not full-screen
+    setView("upload");
   };
 
   const isParseImporting = view === "importing" && loaderSessionKey.startsWith("parse");
   const isAiImporting = view === "importing" && loaderSessionKey.startsWith("import");
-
-  if (view === "landing") {
-    return <LandingUploadSection onFileSelect={handleFileSelect} />;
-  }
 
   if (isParseImporting) {
     return (
@@ -283,6 +296,8 @@ export function HomeClient() {
 
   return (
     <AppShell>
+      {view === "upload" && <CsvUploadSection onFileSelect={handleFileSelect} />}
+
       {view === "preview" && parsedCsv && (
         <CsvPreviewSection
           data={parsedCsv}

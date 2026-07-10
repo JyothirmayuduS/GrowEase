@@ -1,12 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Building2, CreditCard, Users } from "lucide-react";
 
 import { AppPage } from "@/components/layout/AppPage";
 import { MetricCard, PageSection } from "@/components/ui/enterprise";
-
-export const metadata = { title: "Business Center" };
+import { useToast } from "@/components/ui/toast";
 
 export default function BusinessCenterPage() {
+  const { showToast } = useToast();
+
   return (
     <AppPage
       title="Workspace"
@@ -22,7 +25,17 @@ export default function BusinessCenterPage() {
             Growth plan · AI CSV importer · Indian RE lead gen
           </p>
         </div>
-        <button type="button" className="ge-btn-secondary inline-flex items-center gap-1.5 px-4 py-2 text-[13px]">
+        <button
+          type="button"
+          onClick={() =>
+            showToast({
+              title: "Billing portal",
+              description: "Growth plan is active · next invoice on the 1st.",
+              variant: "success",
+            })
+          }
+          className="ge-btn-secondary inline-flex items-center gap-1.5 px-4 py-2 text-[13px]"
+        >
           <CreditCard className="h-3.5 w-3.5" />
           Manage billing
         </button>
