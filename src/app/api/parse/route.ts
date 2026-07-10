@@ -1,7 +1,8 @@
 import { parseCsvBuffer } from "@/lib/csv/parse-csv-buffer";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
 
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB
 

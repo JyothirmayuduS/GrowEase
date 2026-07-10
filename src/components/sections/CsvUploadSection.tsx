@@ -7,7 +7,6 @@ import { CloudStorageButtons } from "@/components/features/csv-import/CloudStora
 import { ACCEPTED_TYPES } from "@/components/features/csv-import/FileDropzone";
 import { ImportPanel } from "@/components/layout/ImportPanel";
 import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";
-import { CRM_FIELDS } from "@/lib/constants/crm";
 import { cn } from "@/lib/utils";
 
 interface CsvUploadSectionProps {
@@ -106,23 +105,25 @@ export function CsvUploadSection({ onFileSelect }: CsvUploadSectionProps) {
           <div className="mt-5 rounded-lg border border-[var(--ge-border)] bg-white">
             <div className="flex items-center justify-between gap-3 border-b border-[var(--ge-border)] px-4 py-2.5">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--ge-text-muted)]">
-                CSV format
+                Any CSV shape
               </p>
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  window.open("/samples/facebook-leads.csv", "_blank");
+                  window.open("/samples/whatsapp-agent-sheet.csv", "_blank");
                 }}
                 className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium text-[#2d6a4f] transition-colors hover:bg-[#e8f5ef] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2d6a4f]/25"
               >
                 <FileSpreadsheet className="h-3.5 w-3.5" />
-                Sample template
+                Try messy sample
               </button>
             </div>
             <p className="px-4 py-3 text-[12px] leading-relaxed text-[var(--ge-text-muted)]">
-              <span className="font-medium text-[var(--ge-text)]">Required headers:</span>{" "}
-              {CRM_FIELDS.slice(0, 8).join(", ")}, and more.
+              Headers do not need to match CRM fields. Facebook Lead Ads, Zoho exports,
+              WhatsApp sheets, and typo-ridden agent lists are mapped by meaning after you
+              confirm import. More samples under{" "}
+              <span className="font-medium text-[var(--ge-text)]">/samples/</span>.
             </p>
           </div>
 

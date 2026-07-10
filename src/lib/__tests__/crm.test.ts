@@ -159,6 +159,113 @@ describe("heuristicExtractBatch multi-contact", () => {
     const sanitized = sanitizeCrmRecord(records[0]);
     expect(getSkipReason(sanitized)).not.toBeNull();
   });
+
+  it("maps Zoho-style CRM export headers and status synonyms", () => {
+    const records = heuristicExtractBatch(
+      ["Lead Name", "Email", "Mobile", "Lead Status", "Lead Source", "City"],
+      [
+        {
+          "Lead Name": "Ananya Reddy",
+          Email: "ananya.reddy@gmail.com",
+          Mobile: "9876501234",
+          "Lead Status": "Hot Lead",
+          "Lead Source": "Meridian Tower",
+          City: "Hyderabad",
+        },
+      ]
+    );
+    const sanitized = sanitizeCrmRecord(records[0]);
+    expect(sanitized.name).toBe("Ananya Reddy");
+    expect(sanitized.crm_status).toBe("GOOD_LEAD_FOLLOW_UP");
+    expect(sanitized.data_source).toBe("meridian_tower");
+    expect(sanitized.city).toBe("Hyderabad");
+  });
+
+  it("maps WhatsApp agent sheet (Naam/Mob/Mail id/Project)", () => {
+    const records = heuristicExtractBatch(
+      ["Naam", "Mob", "Mail id", "City", "Project", "Possession", "Remarks", "Status"],
+      [
+        {
+          Naam: "Ramesh K",
+          Mob: "9848011111",
+          "Mail id": "ramesh.k@yahoo.com",
+          City: "Hyd",
+          Project: "Meridian",
+          Possession: "Ready to move",
+          Remarks: "WhatsApp fwd",
+          Status: "good lead",
+        },
+      ]
+    );
+    const sanitized = sanitizeCrmRecord(records[0]);
+    expect(sanitized.name).toBe("Ramesh K");
+    expect(sanitized.email).toBe("ramesh.k@yahoo.com");
+    expect(sanitized.mobile_without_country_code).toBe("9848011111");
+    expect(sanitized.data_source).toBe("meridian_tower");
+    expect(sanitized.possession_time).toBe("Ready to move");
+    expect(sanitized.crm_status).toBe("GOOD_LEAD_FOLLOW_UP");
+  });
+
+  it("survives typo headers via fuzzy alias match", () => {
+    const records = heuristicExtractBatch(
+      ["Lead Namee", "Emial", "Phne Number", "Citty", "Lead Stauts", "Soruce", "Possesion"],
+      [
+        {
+          "Lead Namee": "Amit Sharma",
+          Emial: "amit.sharma@example.com",
+          "Phne Number": "9876543210",
+          Citty: "Mumbai",
+          "Lead Stauts": "Good Lead Follow Up",
+          Soruce: "leads on demand",
+          Possesion: "Q2 2027",
+        },
+      ]
+    );
+    const sanitized = sanitizeCrmRecord(records[0]);
+    expect(sanitized.name).toBe("Amit Sharma");
+    expect(sanitized.email).toBe("amit.sharma@example.com");
+    expect(sanitized.mobile_without_country_code).toBe("9876543210");
+    expect(sanitized.city).toBe("Mumbai");
+    expect(sanitized.crm_status).toBe("GOOD_LEAD_FOLLOW_UP");
+    expect(sanitized.data_source).toBe("leads_on_demand");
+    expect(sanitized.possession_time).toBe("Q2 2027");
+  });
+
+  it("maps LOD / Sarjapur nicknames and multi-phone WhatsApp rows", () => {
+    const records = heuristicExtractBatch(
+      ["Naam", "Mob", "Project", "Status"],
+      [
+        {
+          Naam: "Fatima",
+          Mob: "9123456780 | 9000098765",
+          Project: "LOD",
+          Status: "hot",
+        },
+      ]
+    );
+    const sanitized = sanitizeCrmRecord(records[0]);
+    expect(sanitized.data_source).toBe("leads_on_demand");
+    expect(sanitized.mobile_without_country_code).toBe("9123456780");
+    expect(sanitized.crm_note).toContain("9000098765");
+  });
+});
+
+describe("status and source synonym coverage", () => {
+  it("maps common agent status slang", () => {
+    expect(normalizeCrmStatus("callback")).toBe("GOOD_LEAD_FOLLOW_UP");
+    expect(normalizeCrmStatus("DNC")).toBe("DID_NOT_CONNECT");
+    expect(normalizeCrmStatus("wrong number")).toBe("BAD_LEAD");
+    expect(normalizeCrmStatus("booked")).toBe("SALE_DONE");
+    expect(normalizeCrmStatus("Hot Lead")).toBe("GOOD_LEAD_FOLLOW_UP");
+  });
+
+  it("maps project nicknames used in RE sheets", () => {
+    expect(normalizeDataSource("LOD")).toBe("leads_on_demand");
+    expect(normalizeDataSource("Meridian")).toBe("meridian_tower");
+    expect(normalizeDataSource("sarjapur road")).toBe("sarjapur_plots");
+    expect(normalizeDataSource("Varah Swamy")).toBe("varah_swamy");
+    expect(normalizeDataSource("Eden")).toBe("eden_park");
+  });
 });
 
 describe("cleanKey", () => {

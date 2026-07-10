@@ -25,16 +25,67 @@ export function emptyCrmRecord(): CrmLeadRecord {
   };
 }
 
+/** Map messy human status labels → allowed CRM enum (or blank). */
 export function normalizeCrmStatus(value: unknown): CrmStatus | "" {
   if (typeof value !== "string") return "";
-  const upper = value.trim().toUpperCase().replace(/\s+/g, "_");
-  return (CRM_STATUSES as readonly string[]).includes(upper) ? (upper as CrmStatus) : "";
+  const raw = value.trim();
+  if (!raw) return "";
+
+  const upper = raw.toUpperCase().replace(/\s+/g, "_");
+  if ((CRM_STATUSES as readonly string[]).includes(upper)) {
+    return upper as CrmStatus;
+  }
+
+  const lower = raw.toLowerCase();
+  if (
+    /sale\s*done|closed|booked|converted|won|deal\s*done|token\s*done/.test(lower)
+  ) {
+    return "SALE_DONE";
+  }
+  if (
+    /bad\s*lead|not\s*interested|junk|spam|wrong\s*number|invalid\s*lead|fake\s*lead/.test(
+      lower
+    )
+  ) {
+    return "BAD_LEAD";
+  }
+  if (
+    /did\s*not\s*connect|dnc|not\s*reachable|no\s*answer|busy|ringing|switched\s*off/.test(
+      lower
+    )
+  ) {
+    return "DID_NOT_CONNECT";
+  }
+  if (
+    /good\s*lead|follow\s*up|hot|interested|callback|call\s*back|warm|prospect/.test(
+      lower
+    )
+  ) {
+    return "GOOD_LEAD_FOLLOW_UP";
+  }
+
+  return "";
 }
 
+/** Map project / source nicknames → allowed data_source enum (or blank). */
 export function normalizeDataSource(value: unknown): DataSource | "" {
   if (typeof value !== "string") return "";
-  const lower = value.trim().toLowerCase().replace(/\s+/g, "_");
-  return (DATA_SOURCES as readonly string[]).includes(lower) ? (lower as DataSource) : "";
+  const raw = value.trim();
+  if (!raw) return "";
+
+  const lower = raw.toLowerCase().replace(/\s+/g, "_");
+  if ((DATA_SOURCES as readonly string[]).includes(lower)) {
+    return lower as DataSource;
+  }
+
+  const compact = raw.toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (/leadsondemand|^lod$/.test(compact)) return "leads_on_demand";
+  if (/meridian/.test(compact)) return "meridian_tower";
+  if (/edenpark|^eden$/.test(compact)) return "eden_park";
+  if (/varah/.test(compact)) return "varah_swamy";
+  if (/sarjapur/.test(compact)) return "sarjapur_plots";
+
+  return "";
 }
 
 export function hasContactInfo(record: CrmLeadRecord): boolean {

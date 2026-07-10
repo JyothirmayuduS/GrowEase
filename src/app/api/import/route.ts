@@ -3,6 +3,10 @@ import type { ImportApiRequest, ImportStreamEvent } from "@/lib/types/crm";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
+export const dynamic = "force-dynamic";
+
+/** Soft cap so a single request cannot exhaust serverless memory/time. */
+const MAX_IMPORT_ROWS = 2000;
 
 function encodeEvent(event: ImportStreamEvent): Uint8Array {
   return new TextEncoder().encode(`${JSON.stringify(event)}\n`);
@@ -12,12 +16,28 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as ImportApiRequest;
 
-    if (!body.headers || !Array.isArray(body.rows)) {
-      return Response.json({ error: "Invalid request: headers and rows required" }, { status: 400 });
+    if (!body.headers || !Array.isArray(body.headers) || !Array.isArray(body.rows)) {
+      return Response.json(
+        { error: "Invalid request: headers and rows required" },
+        { status: 400 }
+      );
     }
 
     if (body.rows.length === 0) {
       return Response.json({ error: "CSV has no data rows" }, { status: 400 });
+    }
+
+    if (body.rows.length > MAX_IMPORT_ROWS) {
+      return Response.json(
+        {
+          error: `Too many rows (${body.rows.length}). Maximum is ${MAX_IMPORT_ROWS} per import.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (body.headers.length === 0) {
+      return Response.json({ error: "CSV has no columns" }, { status: 400 });
     }
 
     const stream = new ReadableStream({
@@ -52,7 +72,7 @@ export async function POST(request: Request) {
     return new Response(stream, {
       headers: {
         "Content-Type": "application/x-ndjson",
-        "Cache-Control": "no-cache",
+        "Cache-Control": "no-store, no-cache",
       },
     });
   } catch {

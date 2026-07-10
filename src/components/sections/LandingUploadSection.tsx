@@ -80,8 +80,8 @@ export function LandingUploadSection({ onFileSelect }: LandingUploadSectionProps
             </h1>
 
             <p className="mt-3 max-w-[420px] text-[16px] leading-[1.45] text-[#505050] dark:text-slate-400">
-              Drag and drop a CSV file to import leads into your CRM with AI-powered field mapping.
-              Max 5 MB · .csv only.
+              Any CSV shape works — Facebook Lead Ads, Zoho, WhatsApp sheets, typo headers.
+              Preview first, then confirm AI mapping. Max 5 MB · .csv only.
             </p>
 
             <button
@@ -91,6 +91,33 @@ export function LandingUploadSection({ onFileSelect }: LandingUploadSectionProps
             >
               Select a file
             </button>
+
+            <p className="mt-5 text-[13px] text-[#6e6e6e] dark:text-slate-400">
+              Try a messy sample:{" "}
+              <a
+                href="/samples/whatsapp-agent-sheet.csv"
+                className="font-medium text-[#1473e6] hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                WhatsApp sheet
+              </a>
+              {" · "}
+              <a
+                href="/samples/zoho-crm-export.csv"
+                className="font-medium text-[#1473e6] hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Zoho export
+              </a>
+              {" · "}
+              <a
+                href="/samples/typo-headers.csv"
+                className="font-medium text-[#1473e6] hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                typo headers
+              </a>
+            </p>
 
             <p className="mt-9 text-[14px] text-[#6e6e6e] dark:text-slate-400">
               Or from another storage account

@@ -1,37 +1,65 @@
 import { CRM_FIELDS, CRM_STATUSES, DATA_SOURCES } from "@/lib/constants/crm";
 
+/**
+ * GrowEasy field-mapping prompt.
+ * Priority: survive Facebook Lead Ads, Zoho/CRM exports, WhatsApp-shared sheets,
+ * and agent-typed real-estate lists — never assume header names match CRM keys.
+ */
 export function buildSystemPrompt(): string {
-  return `You are a CRM data extraction assistant for GrowEasy CRM.
-Your job is to map arbitrary CSV row data into a fixed GrowEasy CRM lead schema.
+  return `You are GrowEasy CRM's lead field mapper for Indian real-estate lead gen.
 
-CRITICAL — column-name independence:
-- CSV headers will NOT match CRM field names. Do not assume headers like "email" or "name".
-- Infer meaning from header labels AND cell values (e.g. a column of *@*.* values is email).
-- Never invent values that are not present or clearly implied in the row.
-- If a field has no supporting data in the row, return an empty string for that field.
+Your ONLY job: map each arbitrary CSV row into the fixed GrowEasy schema below.
+CSV headers will almost never match CRM field names. Map by MEANING of headers + cell values.
 
-CRM fields (return ALL keys on every record; use "" if unknown):
+CRM fields (return ALL keys on every record; use "" if unknown — never invent):
 ${CRM_FIELDS.join(", ")}
 
-RULES — follow exactly:
+═══════════════════════════════════════
+COLUMN-NAME INDEPENDENCE (non-negotiable)
+═══════════════════════════════════════
+- Do NOT require headers like "email", "name", "phone".
+- Examples of real headers you must handle:
+  Facebook Lead Ads: full_name, email_address, phone_number, created_time, platform, ad_name, form_name
+  Zoho/CRM export: Lead Name, Email, Mobile, Lead Status, Lead Source, Created Time, Owner
+  Google Ads: Lead Name, Phone Number, Lead Status, Comments
+  Agent WhatsApp sheet: Name / Naam, Mob, Mail id, City (Bengaluru/Bangalore/Hyd), Project, Possession, Remarks
+  Hand-typed: typos, mixed case, Telugu/English city names (Vizag, Vijayawada, Hyd, Blr), project nicknames
+- Infer email from *@*.* patterns even if the column is named "contact" or "mail id".
+- Infer mobile from digit-heavy cells (often 10 digits India, sometimes +91…).
+- If a column has no supporting evidence for a CRM field, leave that field "".
 
-1. crm_status — ONLY one of: ${CRM_STATUSES.join(" | ")}. Leave blank if uncertain. Never invent a status.
+═══════════════════════════════════════
+ENUMS — exact values only (server will blank anything else)
+═══════════════════════════════════════
+crm_status MUST be exactly one of:
+${CRM_STATUSES.join(" | ")}
+Synonym hints (map then emit the enum, or blank if unsure):
+- "good lead", "follow up", "hot", "interested", "callback" → GOOD_LEAD_FOLLOW_UP
+- "did not connect", "DNC", "not reachable", "no answer", "busy" → DID_NOT_CONNECT
+- "bad lead", "not interested", "junk", "wrong number", "spam" → BAD_LEAD
+- "sale done", "closed", "booked", "converted", "won" → SALE_DONE
 
-2. data_source — ONLY one of: ${DATA_SOURCES.join(" | ")}. Leave blank if none match confidently.
+data_source MUST be exactly one of:
+${DATA_SOURCES.join(" | ")}
+Synonym hints:
+- "leads on demand", "LOD", "leadsondemand" → leads_on_demand
+- "meridian", "meridian tower" → meridian_tower
+- "eden", "eden park" → eden_park
+- "varah", "varah swamy", "varahaswamy" → varah_swamy
+- "sarjapur", "sarjapur plots", "sarjapur road" → sarjapur_plots
+If the source is Facebook/Google/WhatsApp/organic and does NOT clearly match a project enum, leave data_source blank and put the raw source text in crm_note or description.
 
-3. created_at — Must be parseable by JavaScript new Date(). Prefer ISO. Leave blank if unparseable.
-
-4. crm_note — Remarks, follow-up notes, extra comments, extra phone numbers, extra emails, or any useful info that does not fit other fields.
-
-5. Multiple emails — Use the FIRST as email. Append remaining emails into crm_note (e.g. "Extra emails: a@b.com, c@d.com").
-
-6. Multiple mobile numbers — Use the FIRST as mobile_without_country_code (digits only). Put country code in country_code (e.g. +91). Append extra numbers into crm_note.
-
-7. Skip logic — Set skip: true ONLY if the row has NEITHER a usable email NOR a usable mobile anywhere. Otherwise skip: false.
-
-8. Escape line breaks inside text fields as \\n so each record stays one logical row.
-
-9. Do not hallucinate company, city, owner, or other fields when the CSV has no such data.
+═══════════════════════════════════════
+CONTACT + NOTE RULES
+═══════════════════════════════════════
+1. created_at — must be parseable by JavaScript new Date(). Prefer ISO. Blank if garbage.
+2. Multiple emails in one cell (separated by ; , | /) — FIRST → email; rest → crm_note as "Extra emails: …"
+3. Multiple mobiles in one cell — FIRST → mobile_without_country_code (digits only); country dial into country_code (e.g. +91); rest → crm_note as "Extra phones: …"
+4. skip: true ONLY when the row has NEITHER a usable email NOR a usable mobile anywhere (including odd columns). Otherwise skip: false.
+5. crm_note absorbs remarks, follow-ups, extra contacts, ad/form names, and anything useful that does not fit another field.
+6. possession_time — real-estate possession / handover timing (e.g. "Q1 2027", "Ready to move", "Under construction"). Blank if absent.
+7. Escape newlines inside text as \\n so each record stays one logical row.
+8. NEVER hallucinate company, city, owner, status, or source. Blank > guess.
 
 Return valid JSON only — no markdown fences, no commentary.`;
 }
@@ -40,13 +68,14 @@ export function buildUserPrompt(
   headers: string[],
   rows: Record<string, string>[]
 ): string {
-  return `CSV columns (arbitrary names — map by meaning, not by exact label): ${JSON.stringify(headers)}
+  return `CSV columns (arbitrary — map by meaning): ${JSON.stringify(headers)}
 
-Map these ${rows.length} row(s) to GrowEasy CRM format:
+Map these ${rows.length} row(s) into GrowEasy CRM JSON.
+Preserve row order. Do not drop or invent rows.
 
 ${JSON.stringify(rows, null, 2)}
 
-Return JSON:
+Return exactly:
 {
   "records": [
     {
@@ -70,14 +99,14 @@ Return JSON:
   ]
 }
 
-The "records" array MUST have exactly ${rows.length} items, in the same order as the input rows.`;
+"records" MUST contain exactly ${rows.length} objects.`;
 }
 
-/** Corrective follow-up when the first AI response fails schema validation. */
 export function buildRepairPrompt(errorMessage: string, expectedCount: number): string {
   return `Your previous response was invalid: ${errorMessage}
 
 Return ONLY valid JSON with a "records" array of exactly ${expectedCount} objects.
-Each object must include all CRM keys listed earlier and a boolean "skip".
+Each object must include every CRM key and a boolean "skip".
+crm_status and data_source must be blank or an allowed enum value.
 No markdown, no explanation.`;
 }

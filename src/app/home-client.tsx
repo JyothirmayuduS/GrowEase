@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { animateParseProgress } from "@/lib/animate-parse-progress";
 import { streamImport } from "@/lib/api/stream-import";
@@ -34,6 +34,11 @@ export function HomeClient() {
   const importRunId = useRef(0);
   const parseRunId = useRef(0);
   const importInFlight = useRef(false);
+
+  // Warm serverless functions on cold open so the first upload is snappier.
+  useEffect(() => {
+    void fetch("/api/health", { cache: "no-store" }).catch(() => undefined);
+  }, []);
 
   const handleFileSelect = useCallback(
     async (file: File) => {
