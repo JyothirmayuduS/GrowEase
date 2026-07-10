@@ -125,7 +125,7 @@ export function CsvPreviewSection({
           </>
         }
       >
-        <div className="flex flex-1 flex-col gap-3 bg-[var(--ge-page)] p-0 sm:gap-4 md:min-h-0 md:overflow-hidden">
+        <div className="flex min-w-0 flex-1 flex-col gap-3 bg-[var(--ge-page)] p-0 sm:gap-4 md:min-h-0 md:overflow-hidden">
           {errorMessage && (
             <div
               role="alert"
@@ -201,7 +201,7 @@ export function CsvPreviewSection({
 
           <QualityPieChart summary={summary} active={filter} onSelect={setFilter} />
 
-          <div className="w-full overflow-x-auto rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] md:flex md:min-h-0 md:flex-1 md:flex-col">
+          <div className="w-full max-w-full overflow-x-auto rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] md:flex md:min-h-0 md:flex-1 md:flex-col">
             {headers.length === 0 ? (
               <EmptyPreview />
             ) : visible.length === 0 ? (
