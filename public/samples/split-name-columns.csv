@@ -1,0 +1,5 @@
+First Name,Last Name,Work Email,Cell,Company Name,Town,Province,Country Name,Assigned To,Stage,Comments,Campaign,Details,Submitted At
+Grace,Hopper,grace.h@hopper.com,9001234567,CompuCorp,Chicago,Illinois,USA,rep1@crm.com,GOOD_LEAD_FOLLOW_UP,Follow up by Friday,Meridian Tower,Interested in corner unit,2026-05-10 08:30:00
+Alan,Turing,alan.t@turing.io,9001234568,MathLabs,Cambridge,,UK,rep2@crm.com,DID_NOT_CONNECT,Voicemail left,Eden Park,PhD researcher,2026-05-11 09:00:00
+Ada,,ada@lovelace.org,9001234569,BabbageCo,London,,UK,rep3@crm.com,GOOD_LEAD_FOLLOW_UP,Spoke briefly,LOD,Interested in 3BHK,2026-05-12 10:00:00
+,Von Neumann,vn@arch.com,9001234570,ComputerArch,Princeton,New Jersey,USA,rep4@crm.com,BAD_LEAD,Wrong number,Varah Swamy,,2026-05-13 11:00:00

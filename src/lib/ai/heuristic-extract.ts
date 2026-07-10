@@ -90,6 +90,8 @@ const FIELD_ALIASES: Record<keyof CrmLeadRecord, string[]> = {
     "stage",
     "pipeline_status",
     "pipeline",
+    "stauts",
+    "stts",
   ],
   crm_note: [
     "crm_note",
@@ -166,13 +168,18 @@ function editDistance(a: string, b: string): number {
 function fuzzyAliasMatch(key: string, aliases: string[]): boolean {
   if (aliases.includes(key)) return true;
 
-  // Do not let first_name / last_name map directly to full name via token splitting
+  // Do not let first_name / last_name / given_name / surname / fname / lname
+  // map directly to full name via token splitting
   if (
     aliases.includes("name") &&
     (key.includes("first") ||
       key.includes("last") ||
       key.includes("fname") ||
-      key.includes("lname"))
+      key.includes("lname") ||
+      key === "surname" ||
+      key === "given_name" ||
+      key === "given" ||
+      key === "family_name")
   ) {
     return false;
   }
@@ -296,14 +303,14 @@ function findPhoneInRow(
 
 function findNamePartsHeaders(headers: string[]): { first?: string; last?: string } {
   const normalized = headers.map((h) => ({ raw: h, key: normalizeHeader(h) }));
-  const firstAliases = ["first_name", "firstname", "given_name", "first", "fname"];
+  const firstAliases = ["first_name", "firstname", "given_name", "given", "first", "fname"];
   const lastAliases = ["last_name", "lastname", "surname", "family_name", "last", "lname"];
 
   const first = normalized.find(
-    ({ key }) => firstAliases.includes(key) || fuzzyAliasMatch(key, firstAliases)
+    ({ key }) => firstAliases.includes(key)
   )?.raw;
   const last = normalized.find(
-    ({ key }) => lastAliases.includes(key) || fuzzyAliasMatch(key, lastAliases)
+    ({ key }) => lastAliases.includes(key)
   )?.raw;
 
   return { first, last };

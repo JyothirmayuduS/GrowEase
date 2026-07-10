@@ -1,0 +1,4 @@
+full_name,email_address,phone_number,organization,city_name,state_name,country_name,owner,lead_status,agent_notes,lead_source,property_possession,additional_info,created_at
+Priya Mehta,priya.m@gmail.com,9876543201,TechCorp,Mumbai,Maharashtra,India,agent1@crm.com,good lead follow up,Very interested in 2BHK,Meridian Tower,Q1 2027,Prefers morning calls,2026-06-01 09:00:00
+Rahul Nair,,9876543202,StartupInc,Bangalore,Karnataka,India,agent2@crm.com,did not connect,Busy — try again,Sarjapur plots,Q3 2026,,2026-06-02 10:00:00
+No Contact Here,,,OldCo,Hyderabad,Telangana,India,agent3@crm.com,bad lead,No contact info at all,,,Missing data,
