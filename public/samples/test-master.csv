@@ -1,0 +1,54 @@
+name,email,mobile,company,city,state,country,status,source,note,possession,created_at,test_scenario
+Ravi Kumar,ravi.kumar@gmail.com,9876543210,TechCorp,Hyderabad,Telangana,India,hot,Meridian Tower,Interested in 2BHK,Q3 2027,2026-06-01 09:00:00,✅ PERFECT CLEAN RECORD – should import with no flags
+Priya Mehta,priya.m@example.com,+91-9800112233,StartupInc,Mumbai,Maharashtra,India,warm,LOD,Call back Friday,Q1 2026,2026-06-02 10:30:00,✅ PHONE: +91- prefix → extracts country_code=+91
+Arjun Sharma,arjun.s@test.com,+91 9700223344,BuildMax,Pune,Maharashtra,India,callback,Eden Park,Evening preferred,Ready,2026-06-03 11:00:00,✅ PHONE: +91 space → extracts country_code=+91
+John Smith,john.s@company.com,+1-212-555-0100,USCorp,New York,New York,USA,interested,Meridian Tower,Visiting next week,,2026-06-04 12:00:00,✅ PHONE: US number +1 country code
+Emma Wilson,emma.w@test.co.uk,+44 7911 123456,UKFirm,London,,UK,follow up,Sarjapur plots,Site visit done,,2026-06-05 13:00:00,✅ PHONE: UK +44 country code
+Deepak Joshi,deepak.j@test.com,98.765.432.10,HouseCo,Jaipur,Rajasthan,India,hot,Varah Swamy,Send brochure,Q2 2027,2026-06-06 08:00:00,✅ PHONE: dots instead of dashes → stripped to digits
+Suresh Nair,suresh.n@mail.com,(98) 76543210,GreenHomes,Kochi,Kerala,India,prospect,Meridian Tower,Preferred 3BHK,Q4 2027,2026-06-07 09:30:00,✅ PHONE: parentheses format → stripped
+Meena Pillai,meena.p@mail.com,9876543210|9000112233,TechHomes,Chennai,Tamil Nadu,India,hot,LOD,Both numbers active,Ready to move,2026-06-08 10:00:00,✅ PHONE: pipe-separated → first kept extra in note
+Sunita Rao,sunita.r@mail.com,9800001111;9800002222,RealtyInc,Bangalore,Karnataka,India,warm,Eden Park,Call either number,,2026-06-09 11:00:00,✅ PHONE: semicolon-separated → first kept extra in note
+Anil Desai,anil.d@mail.com,first@a.com;second@b.com,ArchCo,Delhi,,India,callback,Meridian Tower,Has two emails,,2026-06-10 14:00:00,✅ EMAIL: semicolon-separated → first kept extra in note
+Kavya Reddy,main@r.com|backup@r.com,9111222333,PropCo,Vijayawada,AP,India,hot,Sarjapur plots,Primary email preferred,,2026-06-11 08:00:00,✅ EMAIL: pipe-separated → first kept extra in note
+Rohit Verma,rohit+realty@gmail.com,9222333444,HomeLtd,Ahmedabad,Gujarat,India,interested,LOD,Email with + addressing,,2026-06-12 09:00:00,✅ EMAIL: plus-addressing preserved correctly
+Lakshmi Devi,not-a-valid-email,9333444555,TradeCo,Vizag,AP,India,hot,Meridian Tower,Invalid email but has phone,,2026-06-13 10:00:00,⚠️ MALFORMED EMAIL – should be flagged needs_review but NOT skipped (has phone)
+Vikram Singh,vikram.s@corp.com,9444555666,BigCorp,Chandigarh,Punjab,India,hot,Eden Park,ISO date test,Q2 2026,2026-07-01T10:00:00Z,✅ DATE: ISO 8601 format → valid
+Neha Gupta,neha.g@corp.com,9555666777,SmallCo,Lucknow,UP,India,warm,LOD,SQL date format,,2026-07-02 14:30:00,✅ DATE: SQL datetime format → valid
+Rajan Patel,rajan.p@test.com,9666777888,MidCo,Surat,Gujarat,India,callback,Meridian Tower,US date format,,07/10/2026,✅ DATE: MM/DD/YYYY format → valid
+Pooja Iyer,pooja.i@test.com,9777888999,FirmCo,Coimbatore,Tamil Nadu,India,hot,Varah Swamy,Bad date test,,not-a-date,⚠️ BAD DATE – should be cleared (created_at becomes blank)
+=SUM(A1:A10),formula@test.com,9888999000,Inject Co,Mumbai,Maharashtra,India,hot,Meridian Tower,Formula in name field,,2026-06-20 09:00:00,🔒 INJECTION: = formula in name → prefixed with apostrophe '
++9191919191,plus@test.com,9999000111,PlusCo,Pune,Maharashtra,India,interested,LOD,Plus sign in name,,2026-06-21 10:00:00,🔒 INJECTION: + in name → prefixed with apostrophe '
+-DROP TABLE,minus@test.com,9000111222,MinusCo,Delhi,,India,warm,Eden Park,Minus in name,,2026-06-22 11:00:00,🔒 INJECTION: - in name → prefixed with apostrophe '
+@SUM(CTRL),at@test.com,9111000333,AtCo,Hyderabad,Telangana,India,hot,Sarjapur plots,At sign in name,,2026-06-23 12:00:00,🔒 INJECTION: @ in name → prefixed with apostrophe '
+<script>alert(1)</script>,script@test.com,9222111444,ScriptCo,Chennai,Tamil Nadu,India,hot,Meridian Tower,Script in name – stored as text,,2026-06-24 08:00:00,🔒 INJECTION: <script> stored as plain text (not prefixed – no leading = + - @)
+Ghost Lead,,,NoCo,,,,,,,,⛔ SKIP: no email no phone → should be SKIPPED
+Email Only Lead,emailonly@test.com,,OnlyCo,Bangalore,Karnataka,India,hot,LOD,Has only email,,2026-06-26 10:00:00,✅ EMAIL-ONLY: no phone → NOT skipped (has email)
+,,,PhoneCo,Mumbai,Maharashtra,India,hot,Eden Park,Has only phone,,2026-06-27 11:00:00,⚠️ NO NAME but has contact below – check note
+Phone Only Lead,,9123456789,PhoneCo,Mumbai,Maharashtra,India,hot,Eden Park,Has only phone,,2026-06-27 11:00:00,✅ PHONE-ONLY: no email → NOT skipped (has phone)
+Ravi Kumar,ravi.kumar@gmail.com,9876543210,TechCorp,Hyderabad,Telangana,India,hot,Meridian Tower,Interested in 2BHK,Q3 2027,2026-06-01 09:00:00,⛔ DUPLICATE of row 1 → should be flagged/skipped
+రవి కుమార్,ravi.telugu@test.com,9300001111,TelCo,Hyderabad,Telangana,India,hot,Meridian Tower,Telugu name,,2026-06-28 09:00:00,✅ UNICODE: Telugu name preserved
+राहुल शर्मा,rahul.hindi@test.com,9300002222,HindiCo,Delhi,,India,warm,LOD,Hindi name,,2026-06-28 10:00:00,✅ UNICODE: Hindi (Devanagari) name preserved
+أحمد علي,ahmed.arabic@test.com,9300003333,ArabCo,Dubai,,UAE,interested,Eden Park,Arabic name,,2026-06-28 11:00:00,✅ UNICODE: Arabic name preserved
+José García,jose.accented@test.com,9300004444,EuroCo,Barcelona,,Spain,hot,Meridian Tower,Accented Latin name,,2026-06-28 12:00:00,✅ UNICODE: accented characters preserved
+Ravi 🏠 Kumar,emoji.name@test.com,9300005555,EmojiCo,Mumbai,Maharashtra,India,hot,Sarjapur plots,Emoji in name,,2026-06-29 08:00:00,✅ UNICODE: emoji preserved without crash
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,longname@test.com,9400001111,LongCo,Hyderabad,Telangana,India,hot,Meridian Tower,Very long name (100 chars),,2026-06-30 09:00:00,✅ OVERSIZED: 100-char name stored without crash
+Short Note Lead,shortnote@test.com,9400002222,ShortCo,Pune,Maharashtra,India,hot,Meridian Tower,"Note with, comma inside – should not split",Q2 2027,2026-06-30 10:00:00,✅ QUOTED: comma inside note preserved
+Address Lead,address@test.com,9400003333,AddressCo,Bangalore,Karnataka,India,warm,Eden Park,"Plot 12, Phase 3, Sector 4 – Whitefield",Q3 2027,2026-06-30 11:00:00,✅ QUOTED: commas in address/description preserved
+hot status test,hot.status@test.com,9500001111,StatusCo,Mumbai,Maharashtra,India,hot,Meridian Tower,Status synonym test,,2026-07-01 09:00:00,✅ STATUS: 'hot' → GOOD_LEAD_FOLLOW_UP
+warm test,warm.status@test.com,9500002222,StatusCo2,Pune,Maharashtra,India,warm,LOD,Status synonym,,2026-07-01 10:00:00,✅ STATUS: 'warm' → GOOD_LEAD_FOLLOW_UP
+interested test,interested.status@test.com,9500003333,StatusCo3,Delhi,,India,interested,Eden Park,Status synonym,,2026-07-01 11:00:00,✅ STATUS: 'interested' → GOOD_LEAD_FOLLOW_UP
+callback test,callback.status@test.com,9500004444,StatusCo4,Chennai,Tamil Nadu,India,callback,Sarjapur plots,Status synonym,,2026-07-01 12:00:00,✅ STATUS: 'callback' → GOOD_LEAD_FOLLOW_UP
+DNC test,dnc.status@test.com,9500005555,StatusCo5,Jaipur,Rajasthan,India,DNC,Meridian Tower,Status synonym,,2026-07-02 09:00:00,✅ STATUS: 'DNC' → DID_NOT_CONNECT
+busy test,busy.status@test.com,9500006666,StatusCo6,Kochi,Kerala,India,busy,LOD,Status synonym,,2026-07-02 10:00:00,✅ STATUS: 'busy' → DID_NOT_CONNECT
+not interested test,notint.status@test.com,9500007777,StatusCo7,Vizag,AP,India,not interested,Eden Park,Status synonym,,2026-07-02 11:00:00,✅ STATUS: 'not interested' → BAD_LEAD
+wrong number test,wrongnum.status@test.com,9500008888,StatusCo8,Surat,Gujarat,India,wrong number,Varah Swamy,Status synonym,,2026-07-02 12:00:00,✅ STATUS: 'wrong number' → BAD_LEAD
+booked test,booked.status@test.com,9500009999,StatusCo9,Nagpur,Maharashtra,India,booked,Sarjapur plots,Status synonym,,2026-07-03 09:00:00,✅ STATUS: 'booked' → SALE_DONE
+closed test,closed.status@test.com,9600001111,StatusCo10,Indore,MP,India,closed,Meridian Tower,Status synonym,,2026-07-03 10:00:00,✅ STATUS: 'closed' → SALE_DONE
+Meridian Source,meridian.src@test.com,9600002222,SrcCo1,Hyderabad,Telangana,India,hot,Meridian Tower,Project synonym test,,2026-07-04 09:00:00,✅ SOURCE: 'Meridian Tower' → meridian_tower
+LOD Source,lod.src@test.com,9600003333,SrcCo2,Hyderabad,Telangana,India,hot,LOD,Project synonym test,,2026-07-04 10:00:00,✅ SOURCE: 'LOD' → leads_on_demand
+Eden Source,eden.src@test.com,9600004444,SrcCo3,Hyderabad,Telangana,India,hot,Eden Park,Project synonym test,,2026-07-04 11:00:00,✅ SOURCE: 'Eden Park' → eden_park
+Varah Source,varah.src@test.com,9600005555,SrcCo4,Hyderabad,Telangana,India,hot,Varah Swamy,Project synonym test,,2026-07-04 12:00:00,✅ SOURCE: 'Varah Swamy' → varah_swamy
+Sarjapur Source,sarjapur.src@test.com,9600006666,SrcCo5,Bangalore,Karnataka,India,hot,Sarjapur plots,Project synonym test,,2026-07-05 09:00:00,✅ SOURCE: 'Sarjapur plots' → sarjapur_plots
+Unknown Source,unknown.src@test.com,9600007777,SrcCo6,Hyderabad,Telangana,India,hot,XYZ Unknown Project,Unknown source goes to note,,2026-07-05 10:00:00,⚠️ SOURCE: unknown → data_source=blank note has 'XYZ Unknown Project'
+SQL Injection Note,sql.test@test.com,9700001111,SqlCo,Hyderabad,Telangana,India,hot,Meridian Tower,"'; DROP TABLE leads; -- SELECT * FROM users",Q3 2027,2026-07-06 09:00:00,🔒 SQL injection in note stored as literal text
+Tata Infosys Co,tata.test@test.com,9700002222,"Tata, Infosys & Co",Mumbai,Maharashtra,India,hot,Meridian Tower,Company with comma in name,,2026-07-06 10:00:00,✅ QUOTED COMPANY: comma inside company name preserved
