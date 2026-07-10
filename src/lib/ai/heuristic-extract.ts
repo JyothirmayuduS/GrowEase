@@ -350,7 +350,10 @@ function mapRow(headers: string[], row: Record<string, string>): Partial<CrmLead
       }
     } else if (field === "crm_note") {
       note = appendToCrmNote(note, value);
-    } else if (field === "country_code" || field === "mobile_without_country_code") {
+    } else if (field === "country_code") {
+      // Read the explicit country_code column value here
+      record.country_code = value;
+    } else if (field === "mobile_without_country_code") {
       // handled via phone column below
     } else {
       record[field] = value;

@@ -103,11 +103,12 @@ export class HeuristicProvider implements AIProvider {
         }
       }
 
+      const explicitCountryCode = get("country_code").trim();
       return {
         created_at: parseCreatedAt(get("created_at")),
         name: nameVal,
         email: emailInfo.primary,
-        country_code: phoneInfo.country_code,
+        country_code: explicitCountryCode || phoneInfo.country_code,
         mobile_without_country_code: phoneInfo.mobile_without_country_code,
         company: get("company"),
         city: get("city"),
