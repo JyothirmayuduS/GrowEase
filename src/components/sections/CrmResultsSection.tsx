@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, Columns3 } from "lucide-react";
 
 import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";
 import { PageAnnotations } from "@/components/ui/page-annotations";
-import { QualityPieChart } from "@/components/ui/quality-pie-chart";
+import { QualityStrip } from "@/components/ui/quality-strip";
 import { colStyle, ResizableTh } from "@/components/ui/resizable-th";
 import { RowStateBadge } from "@/components/ui/row-state-badge";
 import { useToast } from "@/components/ui/toast";
@@ -251,7 +251,7 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
             </div>
           </div>
 
-          <QualityPieChart
+          <QualityStrip
             summary={summary}
             active={filter}
             onSelect={setFilter}
