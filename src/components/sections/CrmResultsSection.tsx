@@ -37,16 +37,16 @@ const RESULTS_COL_KEYS = [
 
 const RESULTS_DEFAULTS: Record<string, number> = {
   "#": 52,
-  __status: 280,
-  name: 180,
-  email: 240,
-  country: 100,
-  mobile: 140,
-  company: 180,
-  city: 140,
-  state: 140,
-  lead_owner: 180,
-  crm_stage: 180,
+  __status: 180,
+  name: 150,
+  email: 150,
+  country: 150,
+  mobile: 150,
+  company: 150,
+  city: 150,
+  state: 150,
+  lead_owner: 150,
+  crm_stage: 150,
 };
 
 const FIELD_REASON_LABEL: Partial<Record<keyof CrmLeadRecord, string>> = {
@@ -183,7 +183,7 @@ export function CrmResultsSection({
   const { widths, resize, reset, stickyLeft } = useColumnWidths(
     colKeys,
     RESULTS_DEFAULTS,
-    `ge-results-cols:${fileName}`
+    `ge-results-cols:v2`
   );
 
   const totalWidth = useMemo(

@@ -75,16 +75,16 @@ export function CsvPreviewSection({
   const defaults = useMemo(() => {
     const d: Record<string, number> = {
       "#": 52,
-      __status: 280,
+      __status: 180,
     };
-    for (const h of headers) d[h] = h === stickyHeader ? 160 : 140;
+    for (const h of headers) d[h] = 150;
     return d;
-  }, [headers, stickyHeader]);
+  }, [headers]);
 
   const { widths, resize, reset, stickyLeft } = useColumnWidths(
     columnKeys,
     defaults,
-    `ge-preview-cols:${data.fileName}`
+    `ge-preview-cols:v2:${data.fileName}`
   );
 
   const totalWidth = useMemo(
