@@ -12,8 +12,10 @@ import { CrmResultsSection } from "@/components/sections/CrmResultsSection";
 import { CsvPreviewSection } from "@/components/sections/CsvPreviewSection";
 import { LandingUploadSection } from "@/components/sections/LandingUploadSection";
 import { useToast } from "@/components/ui/toast";
+import { pushImportHistory, upsertImportedLeads } from "@/lib/store/import-history";
 import type { ImportApiResponse } from "@/lib/types/crm";
 import type { AppView, ParsedCsv } from "@/lib/types/app";
+import { assessRecordQuality } from "@/lib/validation/record-quality";
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -163,6 +165,37 @@ export function HomeClient() {
 
       setLoaderStatus("Completed");
       setImportResult(result);
+
+      // Persist for Dashboard / Manage Leads (browser workspace).
+      const enriched = result.imported.map((record) => {
+        const quality = assessRecordQuality(record);
+        return {
+          record,
+          qualityState: (quality.flagged ? "needs_review" : "clean") as
+            | "clean"
+            | "needs_review",
+          confidence: quality.confidence,
+        };
+      });
+      upsertImportedLeads(enriched, parsedCsv.fileName);
+      pushImportHistory({
+        fileName: parsedCsv.fileName,
+        importedAt: new Date().toISOString(),
+        totals: result.totals,
+        quality: {
+          total: result.totals.total,
+          clean: enriched.filter((e) => e.qualityState === "clean").length,
+          needsReview: enriched.filter((e) => e.qualityState === "needs_review").length,
+          skipped: result.totals.skipped,
+        },
+        avgConfidence:
+          enriched.length === 0
+            ? 0
+            : Math.round(
+                enriched.reduce((s, e) => s + e.confidence, 0) / enriched.length
+              ),
+      });
+
       showToast({
         variant: "success",
         title: "Import complete",

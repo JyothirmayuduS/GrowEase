@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -24,10 +23,13 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "600"],
 });
 
-export const metadata: Metadata = {
-  title: "GrowEasy CRM — AI CSV Importer",
+export const metadata = {
+  title: {
+    default: "GrowEasy CRM",
+    template: "%s · GrowEasy CRM",
+  },
   description:
-    "Upload any CSV file and intelligently map leads into GrowEasy CRM format using AI.",
+    "Enterprise lead gen CRM — AI CSV importer, pipeline dashboard, and engagement tools for Indian real-estate teams.",
 };
 
 export default function RootLayout({

@@ -1,5 +1,6 @@
-import { HomeClient } from "./home-client";
+import { redirect } from "next/navigation";
 
+/** Enterprise entry: Dashboard. CSV import lives under /lead-sources. */
 export default function Home() {
-  return <HomeClient />;
+  redirect("/dashboard");
 }
