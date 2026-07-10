@@ -38,7 +38,8 @@ export function applyMultiContactRules(record: {
   country_code: string;
   crm_note: string;
 } {
-  let { email, mobile_without_country_code, country_code, crm_note } = record;
+  let { email, mobile_without_country_code, country_code } = record;
+  const { crm_note } = record;
 
   const emails = splitEmails(email);
   if (emails.length > 0) {
