@@ -1,11 +1,17 @@
-export type AiProviderName = "anthropic" | "openai" | "heuristic";
+export type AiProviderName = "anthropic" | "openai" | "gemini" | "heuristic";
 
 export function getAiProviderName(): AiProviderName {
   const explicit = process.env.AI_PROVIDER?.toLowerCase();
-  if (explicit === "anthropic" || explicit === "openai" || explicit === "heuristic") {
+  if (
+    explicit === "anthropic" ||
+    explicit === "openai" ||
+    explicit === "gemini" ||
+    explicit === "heuristic"
+  ) {
     return explicit;
   }
 
+  if (process.env.GEMINI_API_KEY) return "gemini";
   if (process.env.ANTHROPIC_API_KEY) return "anthropic";
   if (process.env.OPENAI_API_KEY) return "openai";
 
@@ -16,13 +22,20 @@ export function getAiModel(provider: AiProviderName): string {
   if (provider === "anthropic") {
     return process.env.ANTHROPIC_MODEL ?? "claude-3-5-haiku-latest";
   }
+  if (provider === "gemini") {
+    return process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
+  }
   return process.env.OPENAI_MODEL ?? "gpt-4o-mini";
 }
 
 export function isAiConfigured(): boolean {
   const provider = process.env.AI_PROVIDER?.toLowerCase();
   if (provider === "heuristic") return true;
-  return Boolean(process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY);
+  return Boolean(
+    process.env.GEMINI_API_KEY ||
+      process.env.ANTHROPIC_API_KEY ||
+      process.env.OPENAI_API_KEY
+  );
 }
 
 function getApiErrorStatus(error: unknown): number | undefined {
@@ -46,32 +59,17 @@ export function formatAiApiError(error: unknown, provider: AiProviderName): Erro
     return error instanceof Error ? error : new Error(String(error));
   }
 
-  const providerLabel = provider === "openai" ? "OpenAI" : "Anthropic";
+  const providerLabel =
+    provider === "openai" ? "OpenAI" : provider === "gemini" ? "Gemini" : "Anthropic";
   const billingUrl =
     provider === "openai"
       ? "https://platform.openai.com/account/billing"
-      : "https://console.anthropic.com/settings/billing";
-
-  const alternateProvider =
-    provider === "openai"
-      ? {
-          name: "Anthropic",
-          envKey: "ANTHROPIC_API_KEY",
-          providerValue: "anthropic",
-        }
-      : {
-          name: "OpenAI",
-          envKey: "OPENAI_API_KEY",
-          providerValue: "openai",
-        };
-
-  const hasAlternateKey = Boolean(process.env[alternateProvider.envKey]);
+      : provider === "gemini"
+        ? "https://ai.google.dev/"
+        : "https://console.anthropic.com/settings/billing";
 
   const options = [
     `Add billing or credits in your ${providerLabel} account (${billingUrl}).`,
-    hasAlternateKey
-      ? `Switch to ${alternateProvider.name}: set AI_PROVIDER=${alternateProvider.providerValue} in .env.local and restart the dev server.`
-      : `Use a ${alternateProvider.name} API key instead: add ${alternateProvider.envKey} and set AI_PROVIDER=${alternateProvider.providerValue} in .env.local.`,
     `Replace the ${providerLabel} API key with a key that has available quota.`,
   ];
 
@@ -83,6 +81,27 @@ export async function callAiJson(systemPrompt: string, userPrompt: string): Prom
   const model = getAiModel(provider);
 
   try {
+    if (provider === "gemini") {
+      const { GoogleGenerativeAI } = await import("@google/generative-ai");
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) throw new Error("GEMINI_API_KEY is not configured");
+
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const geminiModel = genAI.getGenerativeModel({
+        model,
+        systemInstruction: systemPrompt,
+        generationConfig: {
+          temperature: 0.1,
+          responseMimeType: "application/json",
+        },
+      });
+
+      const result = await geminiModel.generateContent(userPrompt);
+      const text = result.response.text();
+      if (!text) throw new Error("Empty response from Gemini");
+      return text;
+    }
+
     if (provider === "anthropic") {
       const { default: Anthropic } = await import("@anthropic-ai/sdk");
       const apiKey = process.env.ANTHROPIC_API_KEY;

@@ -87,6 +87,11 @@ export function CsvPreviewSection({
     `ge-preview-cols:${data.fileName}`
   );
 
+  const totalWidth = useMemo(
+    () => columnKeys.reduce((acc, key) => acc + (widths[key] ?? defaults[key] ?? 140), 0),
+    [columnKeys, widths, defaults]
+  );
+
   const stickyOrder = ["#", "__status", stickyHeader];
   const leftHash = 0;
   const leftStatus = stickyLeft(stickyOrder, 1);
@@ -205,7 +210,10 @@ export function CsvPreviewSection({
               </div>
             ) : (
               <div className="ge-table-scroll relative min-h-0 flex-1 overflow-auto">
-                <table className="ge-results-table w-full min-w-max text-left">
+                <table
+                  className="ge-results-table table-fixed text-left"
+                  style={{ width: totalWidth, minWidth: "100%" }}
+                >
                   <caption className="sr-only">
                     CSV preview with row quality. {summary.clean} clean, {summary.needsReview} need
                     review, {summary.skipped} skipped. Drag column edges to resize.
@@ -384,7 +392,7 @@ function PreviewCell({
   return (
     <div className="flex min-w-0 flex-col gap-1">
       {trimmed ? (
-        <span className="whitespace-normal break-words font-mono text-[12.5px] leading-5 text-[var(--ge-text)]">
+        <span className="truncate font-mono text-[12.5px] leading-5 text-[var(--ge-text)]" title={trimmed}>
           {trimmed}
         </span>
       ) : null}

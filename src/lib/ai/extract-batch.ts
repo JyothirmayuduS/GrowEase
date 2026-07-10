@@ -5,12 +5,16 @@ import {
 } from "@/lib/ai/prompts";
 import { callAiJson, getAiProviderName } from "@/lib/ai/ai-provider";
 import { heuristicExtractBatch } from "@/lib/ai/heuristic-extract";
+import { normalizeAiBatchRecords } from "@/lib/validation/crm-record";
+import { hybridProcessRecord } from "@/lib/services/HybridRowProcessor";
+import { DuplicateDetectionService } from "@/lib/services/DuplicateDetectionService";
 import {
-  getSkipReason,
-  normalizeAiBatchRecords,
-  sanitizeCrmRecord,
-} from "@/lib/validation/crm-record";
+  classifyRecord,
+} from "@/lib/services/RecordClassificationService";
 import type { CrmLeadRecord, SkippedRecord } from "@/lib/types/crm";
+
+// Module-level duplicate tracker — reset per import job in extractBatchSession
+const defaultDuplicateTracker = new DuplicateDetectionService();
 
 interface AiBatchRecord extends Partial<CrmLeadRecord> {
   skip?: boolean;
@@ -27,10 +31,15 @@ function parseAiJson(content: string): { records: unknown } {
   return JSON.parse(jsonMatch[0]) as { records: unknown };
 }
 
+/**
+ * Apply the hybrid deterministic pipeline to AI/heuristic-extracted records.
+ * Replaces the old sanitizeCrmRecord approach with full validation.
+ */
 function processRecords(
   rows: Record<string, string>[],
   records: Partial<CrmLeadRecord>[],
   rowOffset: number,
+  duplicateTracker: DuplicateDetectionService,
   allowAiSkip = true
 ): { imported: CrmLeadRecord[]; skipped: SkippedRecord[] } {
   const imported: CrmLeadRecord[] = [];
@@ -38,30 +47,46 @@ function processRecords(
 
   rows.forEach((rawRow, index) => {
     const aiRecord = records[index] ?? {};
-    const sanitized = sanitizeCrmRecord(aiRecord);
-    const rowIndex = rowOffset + index;
+    const rowNumber = rowOffset + index + 1; // 1-based
 
-    if (allowAiSkip && (aiRecord as { skip?: boolean }).skip === true) {
-      // Still re-check: if contact exists after sanitize, do not skip
-      if (!getSkipReason(sanitized)) {
-        imported.push(sanitized);
-        return;
-      }
+    // AI explicitly marked as skip — verify first
+    const aiWantsSkip = allowAiSkip && (aiRecord as AiBatchRecord).skip === true;
+
+    // Run hybrid deterministic pipeline
+    const { record, warnings } = hybridProcessRecord(aiRecord, rawRow);
+
+    // Duplicate detection (after we have final email + phone)
+    const dupCheck = duplicateTracker.check(
+      record.email,
+      record.country_code,
+      record.mobile_without_country_code,
+      rowNumber
+    );
+
+    let skipReason: string | undefined;
+    if (dupCheck.status === "DUPLICATE_IN_FILE") {
+      skipReason = dupCheck.reason ?? "Duplicate row";
+    } else if (aiWantsSkip && !record.email && !record.mobile_without_country_code) {
+      skipReason = "AI marked as skip (no email or mobile)";
+    }
+
+    const classified = classifyRecord(
+      rowNumber,
+      record,
+      warnings,
+      rawRow,
+      skipReason
+    );
+
+    if (classified.recordStatus === "SKIPPED") {
       skipped.push({
-        rowIndex,
-        reason: "AI marked as skip (no email or mobile)",
+        rowIndex: rowOffset + index,
+        reason: classified.skipReason ?? "No valid contact information",
         raw: rawRow,
       });
-      return;
+    } else {
+      imported.push(classified.record);
     }
-
-    const skipReason = getSkipReason(sanitized);
-    if (skipReason) {
-      skipped.push({ rowIndex, reason: skipReason, raw: rawRow });
-      return;
-    }
-
-    imported.push(sanitized);
   });
 
   return { imported, skipped };
@@ -90,10 +115,17 @@ export async function extractBatch(
   headers: string[],
   rows: Record<string, string>[],
   rowOffset: number,
-  maxRetries = 3
+  maxRetries = 3,
+  duplicateTracker: DuplicateDetectionService = defaultDuplicateTracker
 ): Promise<{ imported: CrmLeadRecord[]; skipped: SkippedRecord[] }> {
   if (getAiProviderName() === "heuristic") {
-    return processRecords(rows, heuristicExtractBatch(headers, rows), rowOffset, false);
+    return processRecords(
+      rows,
+      heuristicExtractBatch(headers, rows),
+      rowOffset,
+      duplicateTracker,
+      false
+    );
   }
 
   let lastError: Error | null = null;
@@ -101,7 +133,7 @@ export async function extractBatch(
   for (let attempt = 1; attempt <= maxRetries; attempt += 1) {
     try {
       const records = await callWithSchemaValidation(headers, rows);
-      return processRecords(rows, records as AiBatchRecord[], rowOffset);
+      return processRecords(rows, records as AiBatchRecord[], rowOffset, duplicateTracker);
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       const message = lastError.message;
@@ -116,6 +148,13 @@ export async function extractBatch(
     }
   }
 
-  // API unavailable — fall back to deterministic column mapping (still applies sanitize rules)
-  return processRecords(rows, heuristicExtractBatch(headers, rows), rowOffset, false);
+  // API unavailable — fall back to deterministic column mapping
+  console.warn("AI unavailable, falling back to heuristic extraction:", lastError?.message);
+  return processRecords(
+    rows,
+    heuristicExtractBatch(headers, rows),
+    rowOffset,
+    duplicateTracker,
+    false
+  );
 }

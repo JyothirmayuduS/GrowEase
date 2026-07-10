@@ -89,7 +89,11 @@ type EnrichedLead = {
 function recordsToCsv(records: CrmLeadRecord[]): string {
   const header = CRM_FIELDS.join(",");
   const lines = records.map((record) =>
-    CRM_FIELDS.map((field) => `"${(record[field] ?? "").replace(/"/g, '""')}"`).join(",")
+    CRM_FIELDS.map((field) => {
+      const raw = record[field] ?? "";
+      const escaped = escapeCsvFormulaForExport(String(raw));
+      return `"${escaped.replace(/"/g, '""')}"`;
+    }).join(",")
   );
   return [header, ...lines].join("\n");
 }
@@ -180,6 +184,11 @@ export function CrmResultsSection({
     colKeys,
     RESULTS_DEFAULTS,
     `ge-results-cols:${fileName}`
+  );
+
+  const totalWidth = useMemo(
+    () => colKeys.reduce((acc, key) => acc + (widths[key] ?? RESULTS_DEFAULTS[key] ?? 140), 0),
+    [colKeys, widths]
   );
 
   const stickyOrder = ["#", "__status", "name"];
@@ -284,7 +293,10 @@ export function CrmResultsSection({
               </div>
             ) : (
               <div className="ge-table-scroll overflow-x-auto">
-                <table className="ge-results-table w-full min-w-max">
+                <table
+                  className="ge-results-table table-fixed"
+                  style={{ width: totalWidth, minWidth: "100%" }}
+                >
                   <caption className="sr-only">
                     Import results. {summary.clean} clean, {summary.needsReview} need review,{" "}
                     {summary.skipped} skipped. Drag column edges to resize.
@@ -485,7 +497,7 @@ function OutcomeBadge({ outcome }: { outcome: "complete" | "partial" | "failed" 
   );
 }
 
-/** Full cell text — wraps instead of truncating with … */
+/** Full cell text — truncates with … */
 function FieldValue({
   value,
   issue,
@@ -506,7 +518,7 @@ function FieldValue({
   return (
     <span
       className={cn(
-        "block whitespace-normal break-words text-[13px] leading-5",
+        "block truncate text-[13px] leading-5",
         mono && "font-mono",
         strong && "font-semibold",
         flagged
@@ -551,7 +563,7 @@ function Td({
   return (
     <td
       className={cn(
-        "align-top whitespace-normal break-words px-3.5 py-2.5",
+        "align-top px-3.5 py-2.5",
         last ? "ge-col-rule-last" : "ge-col-rule",
         className
       )}

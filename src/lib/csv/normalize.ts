@@ -1,3 +1,8 @@
+/**
+ * CSV normalization — header cleaning only.
+ * Name/field sanitization is handled by the HybridRowProcessor pipeline.
+ */
+
 export function cleanKey(key: string): string {
   return key.replace(/^\uFEFF/, "").trim();
 }

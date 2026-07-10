@@ -110,7 +110,7 @@ export function RowStateBadge({
         )}
       >
         <Icon className="h-3 w-3 shrink-0" aria-hidden="true" />
-        <span className="min-w-0 whitespace-normal break-words">
+        <span className="min-w-0 truncate" title={preview ? `${meta.label} — ${preview}` : meta.label}>
           <span>{meta.label}</span>
           {preview ? (
             <span className="font-normal">
@@ -166,7 +166,7 @@ export function FieldFlagBadge({ label }: { label: string }) {
   return (
     <span className="inline-flex max-w-full items-center gap-1 rounded-[var(--ge-radius-sm)] border border-[var(--ge-warning-border)] bg-[var(--ge-warning-tint)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--ge-warning-on-tint)]">
       <AlertTriangle className="h-3 w-3 shrink-0" aria-hidden="true" />
-      <span className="whitespace-normal break-words">{label}</span>
+      <span className="truncate" title={label}>{label}</span>
     </span>
   );
 }

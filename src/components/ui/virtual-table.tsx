@@ -155,8 +155,9 @@ export function VirtualTable({
                           )}
                         >
                           <span
+                            title={isEmpty ? undefined : value}
                             className={cn(
-                              "block whitespace-normal break-words",
+                              "block truncate",
                               isEmpty && "text-slate-300 dark:text-slate-600",
                               isReason && !isEmpty && "font-medium text-amber-700 dark:text-amber-400"
                             )}

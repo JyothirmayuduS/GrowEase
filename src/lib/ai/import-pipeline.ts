@@ -1,6 +1,7 @@
 import { DEFAULT_BATCH_SIZE, MAX_RETRIES } from "@/lib/constants/crm";
 import { getStatusForProgress } from "@/lib/import-progress";
 import { extractBatch } from "@/lib/ai/extract-batch";
+import { DuplicateDetectionService } from "@/lib/services/DuplicateDetectionService";
 import type { ImportApiResponse } from "@/lib/types/crm";
 
 export interface ImportProgressUpdate {
@@ -24,6 +25,9 @@ export async function runServerImportPipeline(
 
   const imported: ImportApiResponse["imported"] = [];
   const skipped: ImportApiResponse["skipped"] = [];
+
+  // Shared duplicate tracker across all batches — ensures cross-batch deduplication
+  const duplicateTracker = new DuplicateDetectionService();
 
   const emit = (percent: number, batch: number) => {
     onProgress?.({
@@ -51,7 +55,13 @@ export async function runServerImportPipeline(
     }, 900);
 
     try {
-      const result = await extractBatch(headers, batchRows, start, MAX_RETRIES);
+      const result = await extractBatch(
+        headers,
+        batchRows,
+        start,
+        MAX_RETRIES,
+        duplicateTracker
+      );
       imported.push(...result.imported);
       skipped.push(...result.skipped);
     } finally {
