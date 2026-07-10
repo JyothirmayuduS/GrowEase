@@ -4,11 +4,13 @@ import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp } from "lucide-react";
 
 import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";
+import { QualityPieChart } from "@/components/ui/quality-pie-chart";
 import { QualityStrip } from "@/components/ui/quality-strip";
 import { RowStateBadge } from "@/components/ui/row-state-badge";
 import { useToast } from "@/components/ui/toast";
 import { CRM_FIELDS } from "@/lib/constants/crm";
 import type { CrmLeadRecord, ImportApiResponse, SkippedRecord } from "@/lib/types/crm";
+import { breakdownFromResults } from "@/lib/validation/quality-breakdown";
 import {
   assessRecordQuality,
   formatCrmStage,
@@ -109,6 +111,15 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
     [enriched, skipped, total]
   );
 
+  const breakdown = useMemo(
+    () =>
+      breakdownFromResults(
+        enriched.map((r) => ({ state: r.state, issues: r.quality.issues })),
+        result.skipped
+      ),
+    [enriched, result.skipped]
+  );
+
   const avgConfidence = useMemo(() => {
     if (enriched.length === 0) return 0;
     const sum = enriched.reduce((acc, row) => acc + row.quality.confidence, 0);
@@ -194,12 +205,15 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
             </div>
           </div>
 
-          <QualityStrip
-            summary={summary}
-            active={filter}
-            onSelect={setFilter}
-            className="mb-5"
-          />
+          <div className="mb-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)] lg:items-stretch">
+            <QualityStrip summary={summary} active={filter} onSelect={setFilter} />
+            <QualityPieChart
+              summary={summary}
+              breakdown={breakdown}
+              active={filter}
+              onSelect={setFilter}
+            />
+          </div>
 
           <div className="overflow-hidden rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)]">
             {filter === "skipped" ? (

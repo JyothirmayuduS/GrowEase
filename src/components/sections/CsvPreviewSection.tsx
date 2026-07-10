@@ -6,9 +6,11 @@ import { FileSpreadsheet, RefreshCw } from "lucide-react";
 import { ACCEPTED_TYPES } from "@/components/features/csv-import/FileDropzone";
 import { ImportPanel } from "@/components/layout/ImportPanel";
 import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";
+import { QualityPieChart } from "@/components/ui/quality-pie-chart";
 import { FieldFlagBadge, RowStateBadge } from "@/components/ui/row-state-badge";
 import { QualityStrip } from "@/components/ui/quality-strip";
 import type { ParsedCsv } from "@/lib/types/app";
+import { breakdownFromPreview } from "@/lib/validation/quality-breakdown";
 import {
   assessPreviewRows,
   summarizeAssessments,
@@ -43,6 +45,7 @@ export function CsvPreviewSection({
 
   const assessments = useMemo(() => assessPreviewRows(headers, rows), [headers, rows]);
   const summary = useMemo(() => summarizeAssessments(assessments), [assessments]);
+  const breakdown = useMemo(() => breakdownFromPreview(assessments), [assessments]);
 
   const indexed = useMemo(
     () =>
@@ -150,7 +153,15 @@ export function CsvPreviewSection({
             </div>
           </div>
 
-          <QualityStrip summary={summary} active={filter} onSelect={setFilter} />
+          <div className="grid shrink-0 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)] lg:items-stretch">
+            <QualityStrip summary={summary} active={filter} onSelect={setFilter} />
+            <QualityPieChart
+              summary={summary}
+              breakdown={breakdown}
+              active={filter}
+              onSelect={setFilter}
+            />
+          </div>
 
           {/* Table */}
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)]">
