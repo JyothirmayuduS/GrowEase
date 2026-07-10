@@ -201,7 +201,7 @@ export function CsvPreviewSection({
 
           <QualityPieChart summary={summary} active={filter} onSelect={setFilter} />
 
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)]">
+          <div className="flex min-h-0 flex-1 flex-col overflow-x-auto rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] md:overflow-hidden">
             {headers.length === 0 ? (
               <EmptyPreview />
             ) : visible.length === 0 ? (

@@ -279,7 +279,7 @@ export function CrmResultsSection({
             className="mb-5"
           />
 
-          <div className="overflow-hidden rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)]">
+          <div className="overflow-x-auto rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] md:overflow-hidden">
             {filter === "skipped" ? (
               skipped === 0 ? (
                 <div className="px-6 py-16 text-center text-[13px] text-[var(--ge-text-secondary)]">
