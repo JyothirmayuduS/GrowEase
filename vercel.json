@@ -20,11 +20,5 @@
         { "key": "Cache-Control", "value": "no-store" }
       ]
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/health",
-      "schedule": "0 * * * *"
-    }
   ]
 }
