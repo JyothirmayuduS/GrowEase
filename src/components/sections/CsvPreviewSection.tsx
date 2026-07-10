@@ -171,19 +171,19 @@ export function CsvPreviewSection({
                     <tr className="border-b border-[var(--ge-border)] bg-[var(--ge-panel)]">
                       <th
                         scope="col"
-                        className="sticky left-0 z-[12] w-14 bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        className="sticky left-0 z-[12] w-14 border-r border-[var(--ge-border)] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
                       >
                         #
                       </th>
                       <th
                         scope="col"
-                        className="sticky left-14 z-[12] min-w-[200px] max-w-[260px] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)] shadow-[1px_0_0_var(--ge-border)]"
+                        className="sticky left-14 z-[12] w-[18rem] min-w-[18rem] border-r border-[var(--ge-border)] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
                       >
                         Status
                       </th>
                       <th
                         scope="col"
-                        className="sticky left-[16.5rem] z-[12] min-w-[160px] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)] shadow-[1px_0_0_var(--ge-border)]"
+                        className="sticky left-[21.5rem] z-[12] min-w-[160px] border-r border-[var(--ge-border)] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
                       >
                         {stickyHeader}
                       </th>
@@ -191,7 +191,7 @@ export function CsvPreviewSection({
                         <th
                           key={header}
                           scope="col"
-                          className="whitespace-nowrap px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                          className="whitespace-nowrap border-r border-[var(--ge-border)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)] last:border-r-0"
                         >
                           {header}
                         </th>
@@ -230,11 +230,10 @@ export function CsvPreviewSection({
                       );
                       // One primary field pill only — first flag that maps to a real column.
                       const primaryFieldFlag = fieldFlags[0];
-                      // Status always carries the human-readable reason (plain text).
-                      // Field pill points at the cell; do not omit reason from Status.
+                      // Status always carries the full human-readable reason (wraps, no ellipsis).
                       const statusReason =
                         assessment.state === "needs_review"
-                          ? assessment.flags[0]?.label
+                          ? assessment.flags.map((f) => f.label).join(", ")
                           : undefined;
 
                       const edge =
@@ -249,20 +248,20 @@ export function CsvPreviewSection({
                         >
                           <td
                             className={cn(
-                              "sticky left-0 z-[1] bg-[var(--ge-card)] px-3 py-2.5 font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
+                              "sticky left-0 z-[1] border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3 py-2.5 font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]",
                               edge
                             )}
                           >
                             {index + 1}
                           </td>
-                          <td className="sticky left-14 z-[1] max-w-[260px] bg-[var(--ge-card)] px-3 py-2.5 shadow-[1px_0_0_var(--ge-border)] group-hover:bg-[var(--ge-panel)]">
+                          <td className="sticky left-14 z-[1] w-[18rem] min-w-[18rem] border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3 py-2.5 align-top group-hover:bg-[var(--ge-panel)]">
                             <RowStateBadge
                               state={assessment.state}
                               variant="plain"
                               reason={statusReason}
                             />
                           </td>
-                          <td className="sticky left-[16.5rem] z-[1] max-w-[220px] bg-[var(--ge-card)] px-3 py-2.5 shadow-[1px_0_0_var(--ge-border)] group-hover:bg-[var(--ge-panel)]">
+                          <td className="sticky left-[21.5rem] z-[1] max-w-[220px] border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3 py-2.5 group-hover:bg-[var(--ge-panel)]">
                             <PreviewCell
                               value={row[stickyHeader] ?? ""}
                               flag={
@@ -273,7 +272,10 @@ export function CsvPreviewSection({
                             />
                           </td>
                           {otherHeaders.map((header) => (
-                            <td key={header} className="max-w-[220px] px-3 py-2.5">
+                            <td
+                              key={header}
+                              className="max-w-[220px] border-r border-[var(--ge-border)] px-3 py-2.5 last:border-r-0"
+                            >
                               <PreviewCell
                                 value={row[header] ?? ""}
                                 flag={
