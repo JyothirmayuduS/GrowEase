@@ -34,6 +34,7 @@ const RESULTS_COL_KEYS = [
   "state",
   "lead_owner",
   "crm_stage",
+  "crm_note",
 ] as const;
 
 const RESULTS_DEFAULTS: Record<string, number> = {
@@ -48,6 +49,7 @@ const RESULTS_DEFAULTS: Record<string, number> = {
   state: 150,
   lead_owner: 150,
   crm_stage: 150,
+  crm_note: 250,
 };
 
 const FIELD_REASON_LABEL: Partial<Record<keyof CrmLeadRecord, string>> = {
@@ -336,6 +338,7 @@ export function CrmResultsSection({
                           ["state", "State"],
                           ["lead_owner", "Lead owner"],
                           ["crm_stage", "CRM stage"],
+                          ["crm_note", "CRM Note"],
                         ] as const
                       ).map(([key, label], i, arr) => (
                         <ResizableTh
@@ -429,12 +432,15 @@ export function CrmResultsSection({
                           <Td width={widths.lead_owner}>
                             <FieldValue value={record.lead_owner} mono />
                           </Td>
-                          <Td last width={widths.crm_stage} className="text-[13px] text-[var(--ge-text)]">
+                          <Td width={widths.crm_stage} className="text-[13px] text-[var(--ge-text)]">
                             {record.crm_status ? (
-                              formatCrmStage(record.crm_status)
+                                formatCrmStage(record.crm_status)
                             ) : (
                               <span className="text-[var(--ge-text-muted)]">—</span>
                             )}
+                          </Td>
+                          <Td last width={widths.crm_note}>
+                            <FieldValue value={record.crm_note} />
                           </Td>
                         </tr>
                       );
