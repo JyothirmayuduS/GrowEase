@@ -89,5 +89,5 @@ export function ResizableTh({
 
 /** Preferred column size — content may grow wider; no max clamp that forces … */
 export function colStyle(width: number): React.CSSProperties {
-  return { minWidth: width, width };
+  return { minWidth: width, maxWidth: width, width };
 }
