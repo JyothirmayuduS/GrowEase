@@ -41,24 +41,14 @@ export function applyMultiContactRules(record: {
   let { email, mobile_without_country_code, country_code, crm_note } = record;
 
   const emails = splitEmails(email);
-  if (emails.length > 1) {
-    email = emails[0];
-    crm_note = appendToCrmNote(crm_note, `Extra emails: ${emails.slice(1).join(", ")}`);
-  } else if (emails.length === 1) {
+  if (emails.length > 0) {
     email = emails[0];
   }
 
   const phones = splitPhones(mobile_without_country_code);
-  if (phones.length > 1) {
+  if (phones.length > 0) {
     const first = phones[0];
     const parsed = parsePrimaryPhone(first);
-    mobile_without_country_code = parsed.mobile;
-    if (!country_code && parsed.country_code) {
-      country_code = parsed.country_code;
-    }
-    crm_note = appendToCrmNote(crm_note, `Extra phones: ${phones.slice(1).join(", ")}`);
-  } else if (phones.length === 1) {
-    const parsed = parsePrimaryPhone(phones[0]);
     mobile_without_country_code = parsed.mobile;
     if (!country_code && parsed.country_code) {
       country_code = parsed.country_code;

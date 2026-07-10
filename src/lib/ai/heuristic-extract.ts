@@ -336,9 +336,6 @@ function mapRow(headers: string[], row: Record<string, string>): Partial<CrmLead
     if (field === "email") {
       const emails = splitEmails(value);
       record.email = emails[0] ?? "";
-      if (emails.length > 1) {
-        note = appendToCrmNote(note, `Extra emails: ${emails.slice(1).join(", ")}`);
-      }
     } else if (field === "crm_status") {
       record.crm_status = normalizeCrmStatus(value).value;
     } else if (field === "data_source") {
@@ -376,17 +373,11 @@ function mapRow(headers: string[], row: Record<string, string>): Partial<CrmLead
       record.country_code = record.country_code || parsed.country_code;
       record.mobile_without_country_code = parsed.mobile;
     }
-    if (parsed.extras.length > 0) {
-      note = appendToCrmNote(note, `Extra phones: ${parsed.extras.join(", ")}`);
-    }
   } else if (!record.mobile_without_country_code) {
     const found = findPhoneInRow(row, usedHeaders);
     if (found?.mobile) {
       record.country_code = found.country_code;
       record.mobile_without_country_code = found.mobile;
-      if (found.extras.length > 0) {
-        note = appendToCrmNote(note, `Extra phones: ${found.extras.join(", ")}`);
-      }
     }
   }
 
@@ -394,9 +385,6 @@ function mapRow(headers: string[], row: Record<string, string>): Partial<CrmLead
     const found = findEmailInRow(row, usedHeaders);
     if (found) {
       record.email = found.email;
-      if (found.extras.length > 0) {
-        note = appendToCrmNote(note, `Extra emails: ${found.extras.join(", ")}`);
-      }
     }
   }
 

@@ -176,14 +176,14 @@ describe("B – Email formats & multi-email", () => {
     expect(splitEmails("")).toEqual([]);
   });
 
-  it("B9: extra emails appended to crm_note in pipeline", () => {
+  it("B9: extra emails discarded from crm_note in pipeline", () => {
     const results = extract(
       ["email", "phone"],
       [{ email: "first@x.com; second@x.com; third@x.com", phone: "9876543210" }]
     );
     expect(results[0].email).toBe("first@x.com");
-    expect(results[0].crm_note).toContain("second@x.com");
-    expect(results[0].crm_note).toContain("third@x.com");
+    expect(results[0].crm_note).not.toContain("second@x.com");
+    expect(results[0].crm_note).not.toContain("third@x.com");
   });
 
   it("B10: email scan fallback when column not named 'email'", () => {
@@ -570,13 +570,13 @@ describe("K – Multi-value separators", () => {
     expect(results[0].mobile_without_country_code).toMatch(/^\d+$/);
   });
 
-  it("K5: extra phones appended to crm_note", () => {
+  it("K5: extra phones discarded from crm_note", () => {
     const results = extract(
       ["name", "phone", "email"],
       [{ name: "Test", phone: "9876543210|9000112233", email: "t@x.com" }]
     );
     expect(results[0].mobile_without_country_code).toBe("9876543210");
-    expect(results[0].crm_note).toContain("9000112233");
+    expect(results[0].crm_note).not.toContain("9000112233");
   });
 });
 

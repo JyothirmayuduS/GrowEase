@@ -73,7 +73,7 @@ describe("Comprehensive CSV Import Scenarios", () => {
     // Row 2 Assertions (Multiple Emails)
     expect(results[1].name).toBe("Sarah Johnson");
     expect(results[1].email).toBe("sarah@work.com");
-    expect(results[1].crm_note).toContain("Extra emails: sarah.personal@gmail.com");
+    expect(results[1].crm_note).not.toContain("Extra emails: sarah.personal@gmail.com");
     expect(results[1].crm_status).toBe("DID_NOT_CONNECT");
   });
 
@@ -153,7 +153,7 @@ describe("Comprehensive CSV Import Scenarios", () => {
     // Lakshmi (Multiple Phones)
     expect(results[1].name).toBe("Lakshmi Devi");
     expect(results[1].mobile_without_country_code).toBe("9000012345");
-    expect(results[1].crm_note).toContain("Extra phones: 9000098765");
+    expect(results[1].crm_note).not.toContain("Extra phones: 9000098765");
     expect(results[1].data_source).toBe("sarjapur_plots");
     expect(results[1].crm_status).toBe("GOOD_LEAD_FOLLOW_UP");
   });

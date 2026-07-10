@@ -110,7 +110,7 @@ describe("email field aliases", () => {
   it("takes only first from semicolon-separated emails", () => {
     const results = extract(["email", "phone"], [{ email: "a@b.com; c@d.com", phone }]);
     expect(results[0].email).toBe("a@b.com");
-    expect(results[0].crm_note).toContain("c@d.com");
+    expect(results[0].crm_note).not.toContain("c@d.com");
   });
 
   it("takes only first from pipe-separated emails", () => {
@@ -157,7 +157,7 @@ describe("phone field aliases", () => {
   it("appends extra phones to crm_note", () => {
     const results = extract(["mobile", "email"], [{ mobile: "9001234567 | 9001234568", email }]);
     expect(results[0].mobile_without_country_code).toBe("9001234567");
-    expect(results[0].crm_note).toContain("9001234568");
+    expect(results[0].crm_note).not.toContain("9001234568");
   });
 });
 

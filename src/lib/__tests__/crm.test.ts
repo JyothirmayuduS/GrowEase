@@ -83,24 +83,22 @@ describe("crm-record validation", () => {
     expect(Number.isNaN(new Date(record.created_at).getTime())).toBe(false);
   });
 
-  it("appends extra emails to crm_note", () => {
+  it("discards extra emails from crm_note", () => {
     const record = sanitizeCrmRecord({
       email: "a@b.com; c@d.com",
       crm_note: "hello",
     });
     expect(record.email).toBe("a@b.com");
-    expect(record.crm_note).toContain("Extra emails");
-    expect(record.crm_note).toContain("c@d.com");
+    expect(record.crm_note).toBe("hello");
   });
 
-  it("appends extra phones to crm_note", () => {
+  it("discards extra phones from crm_note", () => {
     const record = sanitizeCrmRecord({
       email: "a@b.com",
       mobile_without_country_code: "9848012345; 9000000000",
     });
     expect(record.mobile_without_country_code).toBe("9848012345");
-    expect(record.crm_note).toContain("Extra phones");
-    expect(record.crm_note).toContain("9000000000");
+    expect(record.crm_note).toBe("");
   });
 
   it("pads short AI batch records to expected count", () => {
@@ -122,7 +120,7 @@ describe("contact-fields helpers", () => {
     expect(splitPhones("111; 222")).toEqual(["111", "222"]);
   });
 
-  it("applyMultiContactRules keeps first email", () => {
+  it("applyMultiContactRules keeps first email and discards rest", () => {
     const result = applyMultiContactRules({
       email: "a@b.com | c@d.com",
       mobile_without_country_code: "",
@@ -130,12 +128,12 @@ describe("contact-fields helpers", () => {
       crm_note: "",
     });
     expect(result.email).toBe("a@b.com");
-    expect(result.crm_note).toContain("c@d.com");
+    expect(result.crm_note).not.toContain("c@d.com");
   });
 });
 
 describe("heuristicExtractBatch multi-contact", () => {
-  it("maps Facebook-style headers and keeps extra emails in note", () => {
+  it("maps Facebook-style headers and discards extra emails", () => {
     const records = heuristicExtractBatch(
       ["full_name", "email_address", "phone"],
       [
@@ -149,7 +147,7 @@ describe("heuristicExtractBatch multi-contact", () => {
     const sanitized = sanitizeCrmRecord(records[0]);
     expect(sanitized.name).toBe("Sarah");
     expect(sanitized.email).toBe("sarah@work.com");
-    expect(sanitized.crm_note).toContain("sarah.personal@gmail.com");
+    expect(sanitized.crm_note).not.toContain("sarah.personal@gmail.com");
     expect(getSkipReason(sanitized)).toBeNull();
   });
 
@@ -233,7 +231,7 @@ describe("heuristicExtractBatch multi-contact", () => {
     expect(sanitized.possession_time).toBe("Q2 2027");
   });
 
-  it("maps LOD / Sarjapur nicknames and multi-phone WhatsApp rows", () => {
+  it("maps LOD / Sarjapur nicknames and multi-phone WhatsApp rows, discarding extra phone", () => {
     const records = heuristicExtractBatch(
       ["Naam", "Mob", "Project", "Status"],
       [
@@ -248,7 +246,7 @@ describe("heuristicExtractBatch multi-contact", () => {
     const sanitized = sanitizeCrmRecord(records[0]);
     expect(sanitized.data_source).toBe("leads_on_demand");
     expect(sanitized.mobile_without_country_code).toBe("9123456780");
-    expect(sanitized.crm_note).toContain("9000098765");
+    expect(sanitized.crm_note).not.toContain("9000098765");
   });
 });
 
