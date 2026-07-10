@@ -50,7 +50,7 @@ export function AppShell({ children, showSidebar = true, className }: AppShellPr
             </div>
             {/* Sidebar component inside drawer */}
             <div className="h-full w-full [&_aside]:w-full [&_aside]:border-none">
-              <Sidebar />
+              <Sidebar isDrawer />
             </div>
           </div>
         </div>
