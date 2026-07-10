@@ -62,7 +62,7 @@ export function VirtualTable({
             {showRowNumbers && (
               <th
                 className={cn(
-                  "sticky left-0 z-[11] w-11 bg-inherit text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--ge-text-muted)]",
+                  "sticky left-0 z-[11] w-11 border-r border-[var(--ge-border)] bg-inherit text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--ge-text-muted)]",
                   isGroweasy ? "px-2.5 py-2" : "px-3 py-2.5"
                 )}
               >
@@ -73,7 +73,7 @@ export function VirtualTable({
               <th
                 key={header}
                 className={cn(
-                  "text-left whitespace-nowrap",
+                  "text-left whitespace-nowrap border-r border-[var(--ge-border)] last:border-r-0",
                   isGroweasy
                     ? "px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--ge-text-muted)] dark:text-slate-500"
                     : isPreview
@@ -133,7 +133,7 @@ export function VirtualTable({
                     {showRowNumbers && (
                       <td
                         className={cn(
-                          "sticky left-0 z-[1] px-2.5 text-center text-[11px] font-medium tabular-nums text-slate-400",
+                          "sticky left-0 z-[1] border-r border-[var(--ge-border)] px-2.5 text-center text-[11px] font-medium tabular-nums text-slate-400",
                           isEven
                             ? "bg-white group-hover:bg-[#f0f6ff] dark:bg-slate-900 dark:group-hover:bg-slate-800/70"
                             : "bg-[#fbfcfd] group-hover:bg-[#f0f6ff] dark:bg-slate-900/60 dark:group-hover:bg-slate-800/70"
@@ -151,7 +151,7 @@ export function VirtualTable({
                           key={header}
                           className={cn(
                             isGroweasy || isPreview ? "px-3 py-2" : "px-4 py-3",
-                            "text-[12.5px] leading-snug text-[var(--ge-text)] dark:text-slate-300"
+                            "border-r border-[var(--ge-border)] text-[12.5px] leading-snug text-[var(--ge-text)] last:border-r-0 dark:text-slate-300"
                           )}
                         >
                           <span

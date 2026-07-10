@@ -8,9 +8,7 @@ import { ImportPanel } from "@/components/layout/ImportPanel";
 import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";
 import { QualityPieChart } from "@/components/ui/quality-pie-chart";
 import { FieldFlagBadge, RowStateBadge } from "@/components/ui/row-state-badge";
-import { QualityStrip } from "@/components/ui/quality-strip";
 import type { ParsedCsv } from "@/lib/types/app";
-import { breakdownFromPreview } from "@/lib/validation/quality-breakdown";
 import {
   assessPreviewRows,
   summarizeAssessments,
@@ -45,7 +43,6 @@ export function CsvPreviewSection({
 
   const assessments = useMemo(() => assessPreviewRows(headers, rows), [headers, rows]);
   const summary = useMemo(() => summarizeAssessments(assessments), [assessments]);
-  const breakdown = useMemo(() => breakdownFromPreview(assessments), [assessments]);
 
   const indexed = useMemo(
     () =>
@@ -153,15 +150,7 @@ export function CsvPreviewSection({
             </div>
           </div>
 
-          <div className="grid shrink-0 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)] lg:items-stretch">
-            <QualityStrip summary={summary} active={filter} onSelect={setFilter} />
-            <QualityPieChart
-              summary={summary}
-              breakdown={breakdown}
-              active={filter}
-              onSelect={setFilter}
-            />
-          </div>
+          <QualityPieChart summary={summary} active={filter} onSelect={setFilter} />
 
           {/* Table */}
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)]">
@@ -188,13 +177,13 @@ export function CsvPreviewSection({
                       </th>
                       <th
                         scope="col"
-                        className="sticky left-14 z-[12] w-[18rem] min-w-[18rem] border-r border-[var(--ge-border)] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        className="sticky left-14 z-[12] min-w-[220px] w-[220px] border-r border-[var(--ge-border)] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
                       >
                         Status
                       </th>
                       <th
                         scope="col"
-                        className="sticky left-[21.5rem] z-[12] min-w-[160px] border-r border-[var(--ge-border)] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
+                        className="sticky left-[calc(3.5rem+220px)] z-[12] min-w-[160px] border-r border-[var(--ge-border)] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
                       >
                         {stickyHeader}
                       </th>
@@ -225,7 +214,7 @@ export function CsvPreviewSection({
                                 <RowStateBadge
                                   state="skipped"
                                   variant="plain"
-                                  reason={assessment.flags[0]?.label}
+                                  reasons={assessment.flags.map((f) => f.label)}
                                 />
                                 <span className="text-[var(--ge-text-secondary)]">
                                   Row {index + 1}
@@ -239,12 +228,10 @@ export function CsvPreviewSection({
                       const fieldFlags = assessment.flags.filter(
                         (f) => f.header && headers.includes(f.header)
                       );
-                      // One primary field pill only — first flag that maps to a real column.
                       const primaryFieldFlag = fieldFlags[0];
-                      // Status always carries the full human-readable reason (wraps, no ellipsis).
-                      const statusReason =
+                      const statusReasons =
                         assessment.state === "needs_review"
-                          ? assessment.flags.map((f) => f.label).join(", ")
+                          ? assessment.flags.map((f) => f.label)
                           : undefined;
 
                       const edge =
@@ -265,14 +252,14 @@ export function CsvPreviewSection({
                           >
                             {index + 1}
                           </td>
-                          <td className="sticky left-14 z-[1] w-[18rem] min-w-[18rem] border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3 py-2.5 align-top group-hover:bg-[var(--ge-panel)]">
+                          <td className="sticky left-14 z-[1] w-[220px] max-w-[220px] overflow-visible border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3 py-2.5 group-hover:bg-[var(--ge-panel)]">
                             <RowStateBadge
                               state={assessment.state}
                               variant="plain"
-                              reason={statusReason}
+                              reasons={statusReasons}
                             />
                           </td>
-                          <td className="sticky left-[21.5rem] z-[1] max-w-[220px] border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3 py-2.5 group-hover:bg-[var(--ge-panel)]">
+                          <td className="sticky left-[calc(3.5rem+220px)] z-[1] max-w-[220px] border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3 py-2.5 group-hover:bg-[var(--ge-panel)]">
                             <PreviewCell
                               value={row[stickyHeader] ?? ""}
                               flag={

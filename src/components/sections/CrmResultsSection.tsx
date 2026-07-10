@@ -5,12 +5,10 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 
 import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";
 import { QualityPieChart } from "@/components/ui/quality-pie-chart";
-import { QualityStrip } from "@/components/ui/quality-strip";
 import { RowStateBadge } from "@/components/ui/row-state-badge";
 import { useToast } from "@/components/ui/toast";
 import { CRM_FIELDS } from "@/lib/constants/crm";
 import type { CrmLeadRecord, ImportApiResponse, SkippedRecord } from "@/lib/types/crm";
-import { breakdownFromResults } from "@/lib/validation/quality-breakdown";
 import {
   assessRecordQuality,
   formatCrmStage,
@@ -36,9 +34,8 @@ function formatIssueReason(issue: FieldIssue): string {
   return `${field} ${msg}`;
 }
 
-function statusReasonText(issues: FieldIssue[]): string | undefined {
-  if (issues.length === 0) return undefined;
-  return issues.map(formatIssueReason).join(", ");
+function statusReasonsList(issues: FieldIssue[]): string[] {
+  return issues.map(formatIssueReason);
 }
 
 interface CrmResultsSectionProps {
@@ -109,15 +106,6 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
       total,
     }),
     [enriched, skipped, total]
-  );
-
-  const breakdown = useMemo(
-    () =>
-      breakdownFromResults(
-        enriched.map((r) => ({ state: r.state, issues: r.quality.issues })),
-        result.skipped
-      ),
-    [enriched, result.skipped]
   );
 
   const avgConfidence = useMemo(() => {
@@ -205,15 +193,12 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
             </div>
           </div>
 
-          <div className="mb-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)] lg:items-stretch">
-            <QualityStrip summary={summary} active={filter} onSelect={setFilter} />
-            <QualityPieChart
-              summary={summary}
-              breakdown={breakdown}
-              active={filter}
-              onSelect={setFilter}
-            />
-          </div>
+          <QualityPieChart
+            summary={summary}
+            active={filter}
+            onSelect={setFilter}
+            className="mb-5"
+          />
 
           <div className="overflow-hidden rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)]">
             {filter === "skipped" ? (
@@ -234,7 +219,7 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
               </div>
             ) : (
               <div className="ge-table-scroll overflow-x-auto">
-                <table className="w-full min-w-[1280px] border-collapse">
+                <table className="w-full min-w-[1100px] border-collapse">
                   <caption className="sr-only">
                     Import results. {summary.clean} clean, {summary.needsReview} need review,{" "}
                     {summary.skipped} skipped. Horizontal scroll for more columns.
@@ -249,13 +234,13 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
                       </th>
                       <th
                         scope="col"
-                        className="sticky left-[52px] z-[2] w-[20rem] min-w-[20rem] border-b border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
+                        className="sticky left-[52px] z-[2] w-[240px] min-w-[240px] border-b border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
                       >
                         Status
                       </th>
                       <th
                         scope="col"
-                        className="sticky left-[23.25rem] z-[2] w-[150px] border-b border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
+                        className="sticky left-[292px] z-[2] w-[150px] border-b border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
                       >
                         Name
                       </th>
@@ -278,7 +263,7 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
                       );
                       const codeIssue = quality.issues.find((i) => i.field === "country_code");
                       const nameIssue = quality.issues.find((i) => i.field === "name");
-                      const reason = statusReasonText(quality.issues);
+                      const reasons = statusReasonsList(quality.issues);
 
                       return (
                         <tr
@@ -288,10 +273,10 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
                           <td className="sticky left-0 z-[1] border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-2.5 font-mono text-[12px] tabular-nums text-[var(--ge-text-muted)] group-hover:bg-[var(--ge-panel)]">
                             {index + 1}
                           </td>
-                          <td className="sticky left-[52px] z-[1] w-[20rem] min-w-[20rem] border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-2.5 align-top group-hover:bg-[var(--ge-panel)]">
-                            <RowStateBadge state={state} reason={reason} />
+                          <td className="sticky left-[52px] z-[1] w-[240px] max-w-[240px] overflow-visible border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-2.5 group-hover:bg-[var(--ge-panel)]">
+                            <RowStateBadge state={state} reasons={reasons} />
                           </td>
-                          <td className="sticky left-[23.25rem] z-[1] border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-2.5 text-[13px] font-semibold group-hover:bg-[var(--ge-panel)]">
+                          <td className="sticky left-[292px] z-[1] border-r border-[var(--ge-border)] bg-[var(--ge-card)] px-3.5 py-2.5 text-[13px] font-semibold group-hover:bg-[var(--ge-panel)]">
                             <FieldValue
                               value={record.name}
                               issue={nameIssue?.message}
@@ -299,42 +284,42 @@ export function CrmResultsSection({ fileName, result, onBack }: CrmResultsSectio
                               strong
                             />
                           </td>
-                          <td className="whitespace-nowrap border-r border-[var(--ge-border)] px-3.5 py-2.5">
+                          <Td>
                             <FieldValue value={record.email} issue={emailIssue?.message} mono />
-                          </td>
-                          <td className="whitespace-nowrap border-r border-[var(--ge-border)] px-3.5 py-2.5">
+                          </Td>
+                          <Td>
                             <FieldValue
                               value={record.country_code}
                               issue={codeIssue?.message}
                               mono
                             />
-                          </td>
-                          <td className="whitespace-nowrap border-r border-[var(--ge-border)] px-3.5 py-2.5">
+                          </Td>
+                          <Td>
                             <FieldValue
                               value={record.mobile_without_country_code}
                               issue={mobileIssue?.message}
                               mono
                             />
-                          </td>
-                          <td className="whitespace-nowrap border-r border-[var(--ge-border)] px-3.5 py-2.5">
+                          </Td>
+                          <Td>
                             <FieldValue value={record.company} mono />
-                          </td>
-                          <td className="whitespace-nowrap border-r border-[var(--ge-border)] px-3.5 py-2.5">
+                          </Td>
+                          <Td>
                             <FieldValue value={record.city} mono />
-                          </td>
-                          <td className="whitespace-nowrap border-r border-[var(--ge-border)] px-3.5 py-2.5">
+                          </Td>
+                          <Td>
                             <FieldValue value={record.state} mono />
-                          </td>
-                          <td className="whitespace-nowrap border-r border-[var(--ge-border)] px-3.5 py-2.5">
+                          </Td>
+                          <Td>
                             <FieldValue value={record.lead_owner} mono />
-                          </td>
-                          <td className="whitespace-nowrap px-3.5 py-2.5 text-[13px] text-[var(--ge-text)]">
+                          </Td>
+                          <Td last className="text-[13px] text-[var(--ge-text)]">
                             {record.crm_status ? (
                               formatCrmStage(record.crm_status)
                             ) : (
                               <span className="text-[var(--ge-text-muted)]">—</span>
                             )}
-                          </td>
+                          </Td>
                         </tr>
                       );
                     })}
@@ -441,6 +426,28 @@ function Th({ children, last }: { children: React.ReactNode; last?: boolean }) {
   );
 }
 
+function Td({
+  children,
+  last,
+  className,
+}: {
+  children: React.ReactNode;
+  last?: boolean;
+  className?: string;
+}) {
+  return (
+    <td
+      className={cn(
+        "whitespace-nowrap px-3.5 py-2.5",
+        !last && "border-r border-[var(--ge-border)]",
+        className
+      )}
+    >
+      {children}
+    </td>
+  );
+}
+
 function SkippedTable({ rows }: { rows: SkippedRecord[] }) {
   return (
     <div className="ge-table-scroll overflow-x-auto">
@@ -459,20 +466,23 @@ function SkippedTable({ rows }: { rows: SkippedRecord[] }) {
               key={row.rowIndex}
               className="border-b border-[var(--ge-border)] hover:bg-[var(--ge-panel)]"
             >
-              <td className="border-r border-[var(--ge-border)] px-3.5 py-2.5 font-mono text-[13px] text-[var(--ge-text)]">
+              <Td className="font-mono text-[13px] text-[var(--ge-text)]">
                 {row.rowIndex + 1}
-              </td>
-              <td className="border-r border-[var(--ge-border)] px-3.5 py-2.5 align-top">
-                <span className="inline-flex items-start gap-2">
-                  <RowStateBadge state="skipped" />
-                  <span className="whitespace-normal break-words text-[13px] font-semibold text-[var(--ge-danger-on-tint)]">
+              </Td>
+              <Td>
+                <span className="inline-flex items-center gap-2">
+                  <RowStateBadge state="skipped" reasons={[row.reason]} />
+                  <span className="text-[13px] font-semibold text-[var(--ge-danger-on-tint)]">
                     {row.reason}
                   </span>
                 </span>
-              </td>
-              <td className="max-w-[480px] px-3.5 py-2.5 font-mono text-[12.5px] text-[var(--ge-text-secondary)]">
-                <span className="whitespace-normal break-words">{formatSkippedRaw(row.raw)}</span>
-              </td>
+              </Td>
+              <Td
+                last
+                className="max-w-[480px] truncate font-mono text-[12.5px] text-[var(--ge-text-secondary)]"
+              >
+                {formatSkippedRaw(row.raw)}
+              </Td>
             </tr>
           ))}
         </tbody>

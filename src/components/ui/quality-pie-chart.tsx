@@ -2,309 +2,264 @@
 
 import { useId, useMemo, useState } from "react";
 
-import type { StatusBreakdown } from "@/lib/validation/quality-breakdown";
 import type { QualitySummary, RowState } from "@/lib/validation/row-quality";
 import { cn } from "@/lib/utils";
 
-type SliceKey = Exclude<RowState, never>;
-
-const SLICES: {
-  key: SliceKey;
-  label: string;
-  color: string;
-}[] = [
-  { key: "clean", label: "Clean", color: "var(--ge-success)" },
-  { key: "needs_review", label: "Needs review", color: "var(--ge-warning)" },
-  { key: "skipped", label: "Skipped", color: "var(--ge-danger)" },
-];
+type SliceKey = RowState | "all";
 
 interface QualityPieChartProps {
   summary: QualitySummary;
-  breakdown: StatusBreakdown;
   active?: RowState | "all";
   onSelect?: (filter: RowState | "all") => void;
   className?: string;
+  size?: number;
 }
+
+const SLICES: {
+  key: RowState;
+  label: string;
+  color: string;
+  countKey: keyof Pick<QualitySummary, "clean" | "needsReview" | "skipped">;
+}[] = [
+  { key: "clean", label: "Clean", color: "var(--ge-success)", countKey: "clean" },
+  {
+    key: "needs_review",
+    label: "Needs review",
+    color: "var(--ge-warning)",
+    countKey: "needsReview",
+  },
+  { key: "skipped", label: "Skipped", color: "var(--ge-danger)", countKey: "skipped" },
+];
 
 function polar(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = ((angleDeg - 90) * Math.PI) / 180;
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
 }
 
-function donutPath(
-  cx: number,
-  cy: number,
-  outer: number,
-  inner: number,
-  startDeg: number,
-  endDeg: number
-): string {
-  const sweep = endDeg - startDeg;
-  if (sweep <= 0.01) return "";
-  if (sweep >= 359.9) {
-    const top = polar(cx, cy, outer, 0);
-    const bottom = polar(cx, cy, outer, 180);
-    const topIn = polar(cx, cy, inner, 0);
-    const bottomIn = polar(cx, cy, inner, 180);
-    return [
-      `M ${top.x} ${top.y}`,
-      `A ${outer} ${outer} 0 1 1 ${bottom.x} ${bottom.y}`,
-      `A ${outer} ${outer} 0 1 1 ${top.x} ${top.y}`,
-      `M ${topIn.x} ${topIn.y}`,
-      `A ${inner} ${inner} 0 1 0 ${bottomIn.x} ${bottomIn.y}`,
-      `A ${inner} ${inner} 0 1 0 ${topIn.x} ${topIn.y}`,
-      "Z",
-    ].join(" ");
-  }
-
-  const large = sweep > 180 ? 1 : 0;
-  const o1 = polar(cx, cy, outer, startDeg);
-  const o2 = polar(cx, cy, outer, endDeg);
-  const i2 = polar(cx, cy, inner, endDeg);
-  const i1 = polar(cx, cy, inner, startDeg);
-
-  return [
-    `M ${o1.x} ${o1.y}`,
-    `A ${outer} ${outer} 0 ${large} 1 ${o2.x} ${o2.y}`,
-    `L ${i2.x} ${i2.y}`,
-    `A ${inner} ${inner} 0 ${large} 0 ${i1.x} ${i1.y}`,
-    "Z",
-  ].join(" ");
-}
-
 /**
- * Status donut: Clean / Needs review / Skipped.
- * Hover a slice or legend row to see what's missing (issue counts).
- * Click to filter the table.
+ * Donut quality chart — replaces Total/Clean/Needs review/Skipped cards.
+ * Hover for full breakdown; click a slice or legend chip to filter the table.
  */
 export function QualityPieChart({
   summary,
-  breakdown,
   active = "all",
   onSelect,
   className,
+  size = 76,
 }: QualityPieChartProps) {
   const uid = useId();
   const [hovered, setHovered] = useState<SliceKey | null>(null);
-
   const total = Math.max(summary.total, 1);
-  const counts: Record<SliceKey, number> = {
-    clean: summary.clean,
-    needs_review: summary.needsReview,
-    skipped: summary.skipped,
-  };
 
-  const arcs = useMemo(() => {
+  const segments = useMemo(() => {
     let angle = 0;
     return SLICES.map((slice) => {
-      const value = counts[slice.key];
-      const sweep = (value / total) * 360;
+      const count = summary[slice.countKey];
+      const sweep = (count / total) * 360;
       const start = angle;
-      const end = angle + sweep;
+      const end = angle + Math.max(sweep, count > 0 ? 0.01 : 0);
       angle = end;
-      return { ...slice, value, start, end };
-    }).filter((s) => s.value > 0);
-  }, [summary.clean, summary.needsReview, summary.skipped, total]);
+      return { ...slice, count, start, end, pct: Math.round((count / total) * 100) };
+    }).filter((s) => s.count > 0);
+  }, [summary, total]);
 
-  const focus = hovered ?? (active !== "all" ? (active as SliceKey) : null);
-  const tip = focus ? breakdown[focus] : null;
-  const tipMeta = focus ? SLICES.find((s) => s.key === focus) : null;
-
-  const size = 120;
   const cx = size / 2;
   const cy = size / 2;
-  const outer = 52;
-  const inner = 30;
+  const outerR = size / 2 - 2;
+  const innerR = outerR * 0.58;
+  const interactive = Boolean(onSelect);
+
+  const tipKey: SliceKey | null =
+    hovered ?? (active !== "all" ? active : null);
+  const tipSlice =
+    tipKey && tipKey !== "all" ? SLICES.find((s) => s.key === tipKey) : null;
+  const tipCount = tipSlice ? summary[tipSlice.countKey] : summary.total;
+  const tipLabel = tipSlice ? tipSlice.label : "All rows";
+  const tipPct = Math.round((tipCount / total) * 100);
+  const showTip = Boolean(hovered);
 
   return (
     <div
       className={cn(
-        "flex h-full flex-col gap-3 rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] p-4",
+        "relative flex items-center gap-4 rounded-[var(--ge-radius-xl)] border border-[var(--ge-border)] bg-[var(--ge-card)] px-4 py-3",
         className
       )}
+      onMouseLeave={() => setHovered(null)}
     >
-      <div className="flex items-center gap-4">
-        <div className="relative shrink-0" style={{ width: size, height: size }}>
-          <svg
-            width={size}
-            height={size}
-            viewBox={`0 0 ${size} ${size}`}
-            role="img"
-            aria-labelledby={`${uid}-title`}
-          >
-            <title id={`${uid}-title`}>
-              Row status: {summary.clean} clean, {summary.needsReview} need review,{" "}
-              {summary.skipped} skipped
-            </title>
-
-            {summary.total === 0 ? (
+      <div className="relative shrink-0" style={{ width: size, height: size }}>
+        <svg
+          width={size}
+          height={size}
+          viewBox={`0 0 ${size} ${size}`}
+          role="img"
+          aria-labelledby={`${uid}-title`}
+        >
+          <title id={`${uid}-title`}>
+            {summary.clean} clean, {summary.needsReview} need review, {summary.skipped} skipped
+            of {summary.total}
+          </title>
+          {summary.total === 0 ? (
+            <circle cx={cx} cy={cy} r={outerR} fill="var(--ge-border)" />
+          ) : segments.length === 1 ? (
+            <>
               <circle
                 cx={cx}
                 cy={cy}
-                r={(outer + inner) / 2}
-                fill="none"
-                stroke="var(--ge-border)"
-                strokeWidth={outer - inner}
+                r={outerR}
+                fill={segments[0].color}
+                className={cn(interactive && "cursor-pointer")}
+                onMouseEnter={() => setHovered(segments[0].key)}
+                onClick={() => onSelect?.(segments[0].key)}
               />
-            ) : (
-              arcs.map((arc) => {
-                const d = donutPath(cx, cy, outer, inner, arc.start, arc.end);
-                const isFocus = focus === arc.key;
-                const dimmed = focus !== null && !isFocus;
-                return (
-                  <path
-                    key={arc.key}
-                    d={d}
-                    fill={arc.color}
-                    opacity={dimmed ? 0.35 : 1}
-                    className="cursor-pointer outline-none transition-opacity duration-150"
-                    style={{
-                      transformOrigin: `${cx}px ${cy}px`,
-                      transform: isFocus ? "scale(1.04)" : undefined,
-                    }}
-                    onMouseEnter={() => setHovered(arc.key)}
-                    onMouseLeave={() => setHovered(null)}
-                    onFocus={() => setHovered(arc.key)}
-                    onBlur={() => setHovered(null)}
-                    onClick={() => onSelect?.(arc.key)}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`${arc.label}: ${arc.value} rows`}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        onSelect?.(arc.key);
-                      }
-                    }}
-                  />
-                );
-              })
-            )}
-
-            <circle cx={cx} cy={cy} r={inner - 1} fill="var(--ge-card)" />
-            <text
-              x={cx}
-              y={cy - 5}
-              textAnchor="middle"
-              fill="var(--ge-text)"
-              style={{ fontSize: 16, fontWeight: 600 }}
-            >
-              {summary.total}
-            </text>
-            <text
-              x={cx}
-              y={cy + 9}
-              textAnchor="middle"
-              fill="var(--ge-text-muted)"
-              style={{ fontSize: 8, fontWeight: 600, letterSpacing: "0.06em" }}
-            >
-              ROWS
-            </text>
-          </svg>
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]">
-            Status mix
-          </p>
-          <ul className="space-y-1">
-            {SLICES.map((slice) => {
-              const value = counts[slice.key];
-              const pct = summary.total ? Math.round((value / summary.total) * 100) : 0;
-              const selected = active === slice.key;
+              <circle cx={cx} cy={cy} r={innerR} fill="var(--ge-card)" />
+            </>
+          ) : (
+            segments.map((seg) => {
+              // Near-full arcs: SVG arc can't do exactly 360°, clamp end
+              const end = Math.min(seg.end, seg.start + 359.999);
+              const oStart = polar(cx, cy, outerR, seg.start);
+              const oEnd = polar(cx, cy, outerR, end);
+              const iStart = polar(cx, cy, innerR, end);
+              const iEnd = polar(cx, cy, innerR, seg.start);
+              const large = end - seg.start > 180 ? 1 : 0;
+              const d = [
+                `M ${oStart.x} ${oStart.y}`,
+                `A ${outerR} ${outerR} 0 ${large} 1 ${oEnd.x} ${oEnd.y}`,
+                `L ${iStart.x} ${iStart.y}`,
+                `A ${innerR} ${innerR} 0 ${large} 0 ${iEnd.x} ${iEnd.y}`,
+                "Z",
+              ].join(" ");
+              const dimmed = active !== "all" && active !== seg.key && hovered !== seg.key;
               return (
-                <li key={slice.key}>
-                  <button
-                    type="button"
-                    disabled={!onSelect}
-                    onClick={() => onSelect?.(slice.key)}
-                    onMouseEnter={() => setHovered(slice.key)}
-                    onMouseLeave={() => setHovered(null)}
-                    className={cn(
-                      "flex w-full items-center gap-2 rounded-[var(--ge-radius-sm)] px-1.5 py-1 text-left transition-colors",
-                      onSelect && "hover:bg-[var(--ge-panel)]",
-                      selected && "bg-[var(--ge-panel)]",
-                      !onSelect && "cursor-default"
-                    )}
-                  >
-                    <span
-                      className="h-2 w-2 shrink-0 rounded-full"
-                      style={{ background: value > 0 ? slice.color : "var(--ge-border)" }}
-                      aria-hidden
-                    />
-                    <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-[var(--ge-text)]">
-                      {slice.label}
-                    </span>
-                    <span className="font-mono text-[11px] tabular-nums text-[var(--ge-text-secondary)]">
-                      {value}
-                    </span>
-                    <span className="w-8 text-right font-mono text-[10px] tabular-nums text-[var(--ge-text-muted)]">
-                      {pct}%
-                    </span>
-                  </button>
-                </li>
+                <path
+                  key={seg.key}
+                  d={d}
+                  fill={seg.color}
+                  opacity={dimmed ? 0.35 : 1}
+                  stroke="var(--ge-card)"
+                  strokeWidth={1.5}
+                  className={cn(interactive && "cursor-pointer transition-opacity")}
+                  onMouseEnter={() => setHovered(seg.key)}
+                  onClick={() => onSelect?.(seg.key)}
+                />
               );
-            })}
-          </ul>
-        </div>
+            })
+          )}
+          <circle cx={cx} cy={cy} r={innerR - 0.5} fill="var(--ge-card)" />
+          <text
+            x={cx}
+            y={cy - 3}
+            textAnchor="middle"
+            fill="currentColor"
+            className="text-[var(--ge-text)]"
+            style={{ fontSize: 15, fontWeight: 700 }}
+          >
+            {summary.total}
+          </text>
+          <text
+            x={cx}
+            y={cy + 11}
+            textAnchor="middle"
+            fill="currentColor"
+            className="text-[var(--ge-text-muted)]"
+            style={{ fontSize: 8, fontWeight: 600, letterSpacing: "0.05em" }}
+          >
+            TOTAL
+          </text>
+        </svg>
       </div>
 
-      {/* Inline hover details — never clipped by parent overflow */}
-      <div
-        className="min-h-[88px] rounded-[var(--ge-radius-md)] border border-[var(--ge-border)] bg-[var(--ge-panel)] px-3 py-2.5"
-        aria-live="polite"
-      >
-        {tip && tipMeta && tip.count > 0 ? (
-          <>
-            <div className="mb-1.5 flex items-center gap-2">
-              <span
-                className="h-2 w-2 shrink-0 rounded-full"
-                style={{ background: tipMeta.color }}
-                aria-hidden
-              />
-              <p className="text-[11px] font-semibold text-[var(--ge-text)]">
-                {tipMeta.label}
-                <span className="ml-1 font-mono font-normal text-[var(--ge-text-muted)]">
-                  · {tip.count} row{tip.count === 1 ? "" : "s"}
-                </span>
-              </p>
-            </div>
-            <ul className="space-y-1">
-              {tip.issues.slice(0, 5).map((issue) => (
-                <li
-                  key={issue.label}
-                  className="flex items-start justify-between gap-3 text-[11px] leading-snug"
-                >
-                  <span className="min-w-0 text-[var(--ge-text-secondary)]">{issue.label}</span>
-                  <span className="shrink-0 font-mono font-semibold tabular-nums text-[var(--ge-text)]">
-                    ×{issue.count}
-                  </span>
-                </li>
-              ))}
-              {tip.issues.length > 5 && (
-                <li className="text-[10px] text-[var(--ge-text-muted)]">
-                  +{tip.issues.length - 5} more
-                </li>
-              )}
-            </ul>
-          </>
-        ) : (
-          <p className="text-[11px] leading-relaxed text-[var(--ge-text-muted)]">
-            Hover a slice to see what&apos;s missing — e.g. missing name, multiple emails,
-            suspicious phone.
-          </p>
-        )}
-      </div>
-
-      {onSelect && active !== "all" && (
+      <div className="min-w-0 flex-1" role="group" aria-label="Filter by quality">
         <button
           type="button"
-          onClick={() => onSelect("all")}
-          className="self-start text-[11px] font-semibold text-[var(--ge-accent)] hover:underline"
+          onClick={() => onSelect?.("all")}
+          onMouseEnter={() => setHovered("all")}
+          disabled={!interactive}
+          className={cn(
+            "mb-2 text-left text-[12px] font-semibold text-[var(--ge-text)]",
+            interactive && "hover:text-[var(--ge-accent)]",
+            active === "all" && "text-[var(--ge-accent)]"
+          )}
         >
-          Show all rows
+          Row quality
+          <span className="ml-1.5 font-normal text-[var(--ge-text-muted)]">
+            · hover for details
+          </span>
         </button>
-      )}
+        <div className="flex flex-wrap gap-1.5">
+          {SLICES.map((s) => {
+            const count = summary[s.countKey];
+            const selected = active === s.key;
+            return (
+              <button
+                key={s.key}
+                type="button"
+                disabled={!interactive}
+                onMouseEnter={() => setHovered(s.key)}
+                onClick={() => onSelect?.(s.key)}
+                aria-pressed={interactive ? selected : undefined}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                  selected
+                    ? "border-[var(--ge-border-strong)] bg-[var(--ge-panel)] text-[var(--ge-text)]"
+                    : "border-[var(--ge-border)] bg-[var(--ge-card)] text-[var(--ge-text-secondary)] hover:bg-[var(--ge-panel)]",
+                  !interactive && "cursor-default"
+                )}
+              >
+                <span
+                  className="h-2 w-2 shrink-0 rounded-full"
+                  style={{ background: s.color }}
+                  aria-hidden
+                />
+                {s.label}
+                <span className="font-mono tabular-nums">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Hover detail panel — full counts, never truncated */}
+      <div
+        role="tooltip"
+        className={cn(
+          "pointer-events-none absolute right-3 top-3 z-20 w-[210px] rounded-[var(--ge-radius-md)] border border-[var(--ge-border-strong)] bg-[var(--ge-card)] px-3 py-2.5 shadow-lg transition-opacity duration-150",
+          showTip ? "opacity-100" : "pointer-events-none opacity-0"
+        )}
+      >
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--ge-text-muted)]">
+          {tipLabel}
+        </p>
+        <p className="mt-0.5 font-mono text-[18px] font-semibold tabular-nums text-[var(--ge-text)]">
+          {tipCount}{" "}
+          <span className="text-[12px] font-medium text-[var(--ge-text-muted)]">({tipPct}%)</span>
+        </p>
+        <ul className="mt-2 space-y-1 border-t border-[var(--ge-border)] pt-2">
+          {SLICES.map((s) => (
+            <li
+              key={s.key}
+              className={cn(
+                "flex items-center justify-between gap-2 text-[11px]",
+                tipKey === s.key
+                  ? "font-semibold text-[var(--ge-text)]"
+                  : "text-[var(--ge-text-secondary)]"
+              )}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ background: s.color }}
+                  aria-hidden
+                />
+                {s.label}
+              </span>
+              <span className="font-mono tabular-nums text-[var(--ge-text)]">
+                {summary[s.countKey]}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
