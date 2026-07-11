@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Enterprise entry: Dashboard. CSV import lives under /lead-sources. */
+/** Entry point redirects to Lead Sources CSV Upload screen. */
 export default function Home() {
-  redirect("/dashboard");
+  redirect("/lead-sources");
 }
