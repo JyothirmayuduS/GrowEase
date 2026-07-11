@@ -71,7 +71,9 @@ export async function runServerImportPipeline(
     }
 
     emit(batchEnd, batchIndex + 1);
-    await wait(400);
+    if (totalBatches < 50) {
+      await wait(400);
+    }
   }
 
   emit(98, totalBatches);
