@@ -431,13 +431,13 @@ describe("hybridProcessRecord — email extraction", () => {
     expect(record.email).toBe("john@example.com");
   });
 
-  it("discards extra emails instead of putting them in crm_note", () => {
+  it("appends extra emails to crm_note", () => {
     const { record } = hybridProcessRecord(
       { name: "John" },
       { primary_email: "john@example.com", alt_email: "john.work@example.com" }
     );
     expect(record.email).toBe("john@example.com");
-    expect(record.crm_note).not.toContain("john.work@example.com");
+    expect(record.crm_note).toContain("john.work@example.com");
   });
 });
 

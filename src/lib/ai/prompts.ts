@@ -53,8 +53,8 @@ If the source is Facebook/Google/WhatsApp/organic and does NOT clearly match a p
 CONTACT + NOTE RULES
 ═══════════════════════════════════════
 1. created_at — must be parseable by JavaScript new Date(). Prefer ISO. Blank if garbage.
-2. Multiple emails in one cell (separated by ; , | /) — FIRST → email; DISCARD the rest. Do NOT add them to crm_note.
-3. Multiple mobiles in one cell — FIRST → mobile_without_country_code (digits only); country dial into country_code (e.g. +91); DISCARD the rest. Do NOT add them to crm_note.
+2. Multiple emails in one cell (separated by ; , | /) — FIRST → email; remaining emails → crm_note (e.g., "Extra emails: email2@example.com").
+3. Multiple mobiles in one cell — FIRST → mobile_without_country_code (digits only); country dial into country_code (e.g. +91); remaining numbers → crm_note (e.g., "Extra phones: +91 9876543210").
 4. skip: true ONLY when the row has NEITHER a usable email NOR a usable mobile anywhere (including odd columns). Otherwise skip: false.
 5. crm_note absorbs remarks, follow-ups, ad/form names, and anything useful that does not fit another field. ONLY use exact text from the CSV. DO NOT invent or add dummy data.
 6. possession_time — real-estate possession / handover timing (e.g. "Q1 2027", "Ready to move", "Under construction"). Blank if absent.
