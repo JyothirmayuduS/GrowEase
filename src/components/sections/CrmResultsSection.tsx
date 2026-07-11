@@ -315,7 +315,7 @@ export function CrmResultsSection({
             ) : (
               <div 
                 ref={parentRef}
-                className="ge-table-scroll md:overflow-x-auto"
+                className="ge-table-scroll max-h-[70vh] md:overflow-auto"
               >
                 <table
                   className="ge-results-table table-fixed"
@@ -637,7 +637,7 @@ function Td({
 
 function SkippedTable({ rows }: { rows: SkippedRecord[] }) {
   return (
-    <div className="ge-table-scroll overflow-x-auto">
+    <div className="ge-table-scroll max-h-[70vh] overflow-auto">
       <table className="ge-results-table w-full min-w-[720px]">
         <caption className="sr-only">Skipped rows with reasons and source data.</caption>
         <thead className="sticky top-0 z-10 bg-[var(--ge-panel)]">

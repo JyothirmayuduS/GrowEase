@@ -227,7 +227,7 @@ export function CsvPreviewSection({
             ) : (
               <div 
                 ref={parentRef}
-                className="ge-table-scroll md:relative md:min-h-0 md:flex-1 md:overflow-auto"
+                className="ge-table-scroll max-h-[70vh] md:relative md:overflow-auto"
               >
                 <table
                   className="ge-results-table table-fixed text-left"
