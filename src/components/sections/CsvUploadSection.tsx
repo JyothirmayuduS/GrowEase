@@ -133,26 +133,14 @@ export function CsvUploadSection({ onFileSelect, isFirstVisit = true }: CsvUploa
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-[#f8f9fa] dark:bg-slate-950">
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:px-6">
+      <header className="flex h-16 shrink-0 items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-8">
-          <Link href="/dashboard" className="transition-opacity hover:opacity-80">
+          <Link href="/" className="transition-opacity hover:opacity-80">
             <AppLogo />
           </Link>
-          <nav className="hidden items-center gap-6 md:flex">
-            <Link href="/dashboard" className="text-[14px] font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">Home</Link>
-            <Link href="/leads" className="text-[14px] font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">Leads</Link>
-            <Link href="/integrations/whatsapp" className="text-[14px] font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">Integrations</Link>
-            <Link href="/settings/team" className="text-[14px] font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">Settings</Link>
-          </nav>
         </div>
         <div className="flex items-center gap-4">
           <ThemeToggle />
-          <Link
-            href="/dashboard"
-            className="hidden h-9 items-center justify-center rounded-full bg-[#1473e6] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#0d66d0] sm:flex"
-          >
-            Go to Dashboard
-          </Link>
         </div>
       </header>
 
