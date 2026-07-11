@@ -1,7 +1,7 @@
 "use client";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useCallback } from "react";
 import { ArrowDown, ArrowUp, Columns3 } from "lucide-react";
 
 import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";

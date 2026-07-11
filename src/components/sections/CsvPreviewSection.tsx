@@ -1,7 +1,7 @@
 "use client";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useCallback } from "react";
 import { Columns3, FileSpreadsheet, RefreshCw } from "lucide-react";
 
 import { ACCEPTED_TYPES } from "@/components/features/csv-import/FileDropzone";
