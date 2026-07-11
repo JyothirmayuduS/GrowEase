@@ -116,8 +116,12 @@ export function CsvPreviewSection({
               : item.row[key] || "";
         if (val.length > maxLen) maxLen = val.length;
       }
-      // rough character width estimate: 8px per char + 40px padding
-      customWidths[key] = Math.min(Math.max(defaults[key] || 100, maxLen * 8 + 40), 600);
+      // rough character width estimate: 9px per char + 40px padding
+      let calculatedWidth = maxLen * 9 + 40;
+      if (key === "__status") {
+        calculatedWidth += 40; // Extra padding for badge icon and spacing
+      }
+      customWidths[key] = Math.min(Math.max(defaults[key] || 100, calculatedWidth), 600);
     }
     expand(customWidths);
   }, [columnKeys, visible, defaults, expand]);
