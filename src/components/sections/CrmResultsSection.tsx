@@ -335,7 +335,7 @@ export function CrmResultsSection({
                         className="ge-col-rule xl:sticky z-[2] bg-[var(--ge-panel)] px-3.5 py-3 text-left text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ge-text-muted)]"
                         style={{ left: leftHash }}
                       >
-                        #
+                        S.No
                       </ResizableTh>
                       <ResizableTh
                         scope="col"
@@ -642,7 +642,7 @@ function SkippedTable({ rows }: { rows: SkippedRecord[] }) {
         <caption className="sr-only">Skipped rows with reasons and source data.</caption>
         <thead className="sticky top-0 z-10 bg-[var(--ge-panel)]">
           <tr>
-            <Th>Row #</Th>
+            <Th>S.No</Th>
             <Th>Reason</Th>
             <Th last>Source data</Th>
           </tr>

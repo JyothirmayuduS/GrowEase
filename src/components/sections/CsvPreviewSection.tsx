@@ -247,7 +247,7 @@ export function CsvPreviewSection({
                         className="ge-col-rule xl:sticky z-[12] bg-[var(--ge-panel)] px-3 py-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--ge-text-muted)]"
                         style={{ left: leftHash }}
                       >
-                        #
+                        S.No
                       </ResizableTh>
                       <ResizableTh
                         scope="col"
