@@ -70,11 +70,15 @@ export function useColumnWidths(
     setIsExpanded(false);
   }, [keySig, defaults]);
 
-  const expand = useCallback(() => {
+  const expand = useCallback((customWidths?: Record<string, number>) => {
     const base: Record<string, number> = {};
     for (const key of keySig.split("\0").filter(Boolean)) {
-      const defaultValue = defaults[key] ?? 140;
-      base[key] = Math.round(defaultValue * 1.5);
+      if (customWidths && customWidths[key]) {
+        base[key] = clamp(customWidths[key]);
+      } else {
+        const defaultValue = defaults[key] ?? 140;
+        base[key] = Math.round(defaultValue * 1.5);
+      }
     }
     setWidths(base);
     setIsExpanded(true);

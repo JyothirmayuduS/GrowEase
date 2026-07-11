@@ -103,6 +103,25 @@ export function CsvPreviewSection({
     `ge-preview-cols:v2:${data.fileName}`
   );
 
+  const handleExpand = useCallback(() => {
+    const customWidths: Record<string, number> = {};
+    for (const key of columnKeys) {
+      let maxLen = key.length;
+      for (const item of visible) {
+        const val =
+          key === "#"
+            ? String(item.index + 1)
+            : key === "__status"
+              ? item.assessment.state
+              : item.row[key] || "";
+        if (val.length > maxLen) maxLen = val.length;
+      }
+      // rough character width estimate: 8px per char + 40px padding
+      customWidths[key] = Math.min(Math.max(defaults[key] || 100, maxLen * 8 + 40), 600);
+    }
+    expand(customWidths);
+  }, [columnKeys, visible, defaults, expand]);
+
   const totalWidth = useMemo(
     () => columnKeys.reduce((acc, key) => acc + (widths[key] ?? defaults[key] ?? 140), 0),
     [columnKeys, widths, defaults]
@@ -204,7 +223,7 @@ export function CsvPreviewSection({
             <div className="flex shrink-0 items-center gap-2">
               <button
                 type="button"
-                onClick={isExpanded ? reset : expand}
+                onClick={isExpanded ? reset : handleExpand}
                 className="inline-flex items-center gap-1.5 rounded-[var(--ge-radius-md)] border border-[var(--ge-border-strong)] bg-[var(--ge-card)] px-3 py-1.5 text-[12px] font-semibold text-[var(--ge-text-secondary)] hover:text-[var(--ge-text)]"
                 title={isExpanded ? "Reset column widths" : "Expand column widths"}
               >

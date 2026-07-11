@@ -207,6 +207,25 @@ export function CrmResultsSection({
     `ge-results-cols:v3`
   );
 
+  const handleExpand = useCallback(() => {
+    const customWidths: Record<string, number> = {};
+    for (const key of colKeys) {
+      let maxLen = key.length;
+      for (const item of tableRows) {
+        const val =
+          key === "#"
+            ? String(item.index + 1)
+            : key === "__status"
+              ? item.state
+              : String(item.record[key as keyof CrmLeadRecord] || "");
+        if (val.length > maxLen) maxLen = val.length;
+      }
+      // rough character width estimate: 8px per char + 40px padding
+      customWidths[key] = Math.min(Math.max(RESULTS_DEFAULTS[key] || 100, maxLen * 8 + 40), 600);
+    }
+    expand(customWidths);
+  }, [colKeys, tableRows, expand]);
+
   const totalWidth = useMemo(
     () => colKeys.reduce((acc, key) => acc + (widths[key] ?? RESULTS_DEFAULTS[key] ?? 140), 0),
     [colKeys, widths]
@@ -261,7 +280,7 @@ export function CrmResultsSection({
               <PageAnnotations storageKey={notesKey} />
               <button
                 type="button"
-                onClick={isExpanded ? reset : expand}
+                onClick={isExpanded ? reset : handleExpand}
                 className="ge-btn-secondary inline-flex w-full items-center justify-center gap-1.5 sm:w-auto"
                 title={isExpanded ? "Reset column widths" : "Expand column widths"}
               >
