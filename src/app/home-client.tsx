@@ -304,7 +304,7 @@ export function HomeClient() {
   }
 
   return (
-    <AppShell>
+    <AppShell showSidebar={view !== "upload"}>
       {dbConnected === false && (
         <div className="mx-6 mt-6 flex items-center gap-3 rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3.5 text-sm text-rose-400">
           <AlertCircle className="h-5 w-5 shrink-0" />
