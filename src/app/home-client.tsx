@@ -30,10 +30,10 @@ export function HomeClient() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const visited = sessionStorage.getItem("hasVisitedGrowEasyUpload");
+      const visited = sessionStorage.getItem("hasVisitedGrowEasyUpload_v3");
       if (!visited) {
         setIsFirstVisit(true);
-        sessionStorage.setItem("hasVisitedGrowEasyUpload", "true");
+        sessionStorage.setItem("hasVisitedGrowEasyUpload_v3", "true");
       } else {
         setIsFirstVisit(false);
       }
@@ -285,6 +285,7 @@ export function HomeClient() {
     setLoaderSessionKey("parse");
     // In-shell Lead Sources upload (sidebar + card) — not full-screen
     setView("upload");
+    setIsFirstVisit(false);
   };
 
   const isParseImporting = view === "importing" && loaderSessionKey.startsWith("parse");
