@@ -28,6 +28,7 @@ export function HomeClient() {
   const [view, setView] = useState<AppView>("upload");
   const [dbConnected, setDbConnected] = useState<boolean | null>(null);
   const [isFirstVisit, setIsFirstVisit] = useState<boolean>(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     // If the module-level variable is false, they just loaded the JS bundle (fresh visit/refresh).
@@ -38,6 +39,7 @@ export function HomeClient() {
     } else {
       setIsFirstVisit(false);
     }
+    setMounted(true);
   }, []);
   const [parsedCsv, setParsedCsv] = useState<ParsedCsv | null>(null);
   const [importResult, setImportResult] = useState<ImportApiResponse | null>(null);
@@ -287,6 +289,15 @@ export function HomeClient() {
     setView("upload");
     setIsFirstVisit(false);
   };
+
+  if (!mounted) {
+    return (
+      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-[#f8f9fa] dark:bg-slate-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1473e6] border-r-transparent"></div>
+      </div>
+    );
+  }
+
   const isParseImporting = view === "importing" && loaderSessionKey.startsWith("parse");
   const isAiImporting = view === "importing" && loaderSessionKey.startsWith("import");
 
