@@ -140,7 +140,7 @@ export function CsvUploadSection({ onFileSelect, isFirstVisit = true }: CsvUploa
           </Link>
         </div>
         <div className="flex items-center gap-4 text-white">
-          <ThemeToggle />
+          <ThemeToggle variant="inverse" />
         </div>
       </header>
 
