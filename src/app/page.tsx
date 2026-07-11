@@ -1,6 +1,12 @@
 import { redirect } from "next/navigation";
 
-/** Entry point redirects to Lead Sources CSV Upload screen. */
+import { HomeClient } from "./home-client";
+
+export const metadata = {
+  title: "Import Leads — GrowEasy",
+  description: "Upload and map your CSV leads instantly.",
+};
+
 export default function Home() {
-  redirect("/lead-sources");
+  return <HomeClient isFirstVisit={true} />;
 }

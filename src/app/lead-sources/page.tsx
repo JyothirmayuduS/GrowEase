@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function LeadSourcesRoute() {
-  return <HomeClient />;
+  return <HomeClient isFirstVisit={false} />;
 }

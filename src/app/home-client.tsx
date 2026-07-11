@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { animateParseProgress } from "@/lib/animate-parse-progress";
 import { streamImport } from "@/lib/api/stream-import";
@@ -22,25 +23,11 @@ function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function HomeClient() {
+export function HomeClient({ isFirstVisit = false }: { isFirstVisit?: boolean }) {
+  const router = useRouter();
   const { showToast } = useToast();
   const [view, setView] = useState<AppView>("upload");
   const [dbConnected, setDbConnected] = useState<boolean | null>(null);
-  const [isFirstVisit, setIsFirstVisit] = useState<boolean>(true);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const visited = sessionStorage.getItem("hasVisitedGrowEasyUpload_v5");
-      if (!visited) {
-        setIsFirstVisit(true);
-        sessionStorage.setItem("hasVisitedGrowEasyUpload_v5", "true");
-      } else {
-        setIsFirstVisit(false);
-      }
-      setMounted(true);
-    }
-  }, []);
   const [parsedCsv, setParsedCsv] = useState<ParsedCsv | null>(null);
   const [importResult, setImportResult] = useState<ImportApiResponse | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
@@ -285,19 +272,13 @@ export function HomeClient() {
     setLoaderStatus("Reading CSV");
     setLoaderFileName("");
     setLoaderSessionKey("parse");
-    // In-shell Lead Sources upload (sidebar + card) — not full-screen
-    setView("upload");
-    setIsFirstVisit(false);
+    
+    if (isFirstVisit) {
+      router.push("/lead-sources");
+    } else {
+      setView("upload");
+    }
   };
-
-  if (!mounted) {
-    return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-[#f8f9fa] dark:bg-slate-950">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1473e6] border-r-transparent"></div>
-      </div>
-    );
-  }
-
   const isParseImporting = view === "importing" && loaderSessionKey.startsWith("parse");
   const isAiImporting = view === "importing" && loaderSessionKey.startsWith("import");
 
