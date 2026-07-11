@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, Columns3 } from "lucide-react";
 
 import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";
@@ -175,6 +176,21 @@ export function CrmResultsSection({
     return enriched;
   }, [enriched, filter]);
 
+  const parentRef = useRef<HTMLDivElement>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: tableRows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 52,
+    overscan: 10,
+  });
+
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start || 0 : 0;
+  const paddingBottom =
+    virtualRows.length > 0
+      ? rowVirtualizer.getTotalSize() - (virtualRows[virtualRows.length - 1]?.end || 0)
+      : 0;
+
   const handleDownload = () => {
     downloadCsv(recordsToCsv(result.imported), generateCsvFilename("groweasy-import"));
     showToast({
@@ -297,7 +313,10 @@ export function CrmResultsSection({
                     : "No imported records."}
               </div>
             ) : (
-              <div className="ge-table-scroll md:overflow-x-auto">
+              <div 
+                ref={parentRef}
+                className="ge-table-scroll md:overflow-x-auto"
+              >
                 <table
                   className="ge-results-table table-fixed"
                   style={{ width: totalWidth }}
@@ -373,7 +392,13 @@ export function CrmResultsSection({
                     </tr>
                   </thead>
                   <tbody>
-                    {tableRows.map((row) => {
+                    {paddingTop > 0 && (
+                      <tr>
+                        <td style={{ height: paddingTop }} colSpan={17} />
+                      </tr>
+                    )}
+                    {virtualRows.map((virtualRow) => {
+                      const row = tableRows[virtualRow.index];
                       const { record, quality, index, state } = row;
                       const emailIssue = quality.issues.find((i) => i.field === "email");
                       const mobileIssue = quality.issues.find(
@@ -389,7 +414,9 @@ export function CrmResultsSection({
 
                       return (
                         <tr
-                          key={`${index}-${record.email}-${record.mobile_without_country_code}`}
+                          key={virtualRow.key}
+                          data-index={virtualRow.index}
+                          ref={rowVirtualizer.measureElement}
                           className="group bg-[var(--ge-card)] hover:bg-[var(--ge-panel)]"
                         >
                           <td
@@ -475,6 +502,11 @@ export function CrmResultsSection({
                         </tr>
                       );
                     })}
+                    {paddingBottom > 0 && (
+                      <tr>
+                        <td style={{ height: paddingBottom }} colSpan={17} />
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>

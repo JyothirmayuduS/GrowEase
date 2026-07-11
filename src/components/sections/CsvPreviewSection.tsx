@@ -1,5 +1,6 @@
 "use client";
 
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { useMemo, useRef, useState } from "react";
 import { Columns3, FileSpreadsheet, RefreshCw } from "lucide-react";
 
@@ -44,6 +45,7 @@ export function CsvPreviewSection({
 }: CsvPreviewSectionProps) {
   const { headers, rows } = data;
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
   const [filter, setFilter] = useState<Filter>("all");
 
   const assessments = useMemo(() => assessPreviewRows(headers, rows), [headers, rows]);
@@ -63,6 +65,20 @@ export function CsvPreviewSection({
     if (filter === "all") return indexed;
     return indexed.filter((item) => item.assessment.state === filter);
   }, [indexed, filter]);
+
+  const rowVirtualizer = useVirtualizer({
+    count: visible.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 52,
+    overscan: 10,
+  });
+
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start || 0 : 0;
+  const paddingBottom =
+    virtualRows.length > 0
+      ? rowVirtualizer.getTotalSize() - (virtualRows[virtualRows.length - 1]?.end || 0)
+      : 0;
 
   const stickyHeader = headers[0] ?? "Column";
   const otherHeaders = headers.slice(1);
@@ -209,7 +225,10 @@ export function CsvPreviewSection({
                 No rows match this filter. Choose another quality state above.
               </div>
             ) : (
-              <div className="ge-table-scroll md:relative md:min-h-0 md:flex-1 md:overflow-auto">
+              <div 
+                ref={parentRef}
+                className="ge-table-scroll md:relative md:min-h-0 md:flex-1 md:overflow-auto"
+              >
                 <table
                   className="ge-results-table table-fixed text-left"
                   style={{ width: totalWidth }}
@@ -268,10 +287,21 @@ export function CsvPreviewSection({
                     </tr>
                   </thead>
                   <tbody>
-                    {visible.map(({ row, index, assessment }) => {
+                    {paddingTop > 0 && (
+                      <tr>
+                        <td style={{ height: paddingTop }} colSpan={headers.length + 2} />
+                      </tr>
+                    )}
+                    {virtualRows.map((virtualRow) => {
+                      const { row, index, assessment } = visible[virtualRow.index];
                       if (assessment.state === "skipped") {
                         return (
-                          <tr key={index} className="bg-[var(--ge-card)]">
+                          <tr
+                            key={virtualRow.key}
+                            data-index={virtualRow.index}
+                            ref={rowVirtualizer.measureElement}
+                            className="bg-[var(--ge-card)]"
+                          >
                             <td
                               colSpan={headers.length + 2}
                               className="border-l-[3px] border-l-[var(--ge-danger)] px-4 py-3 text-[13px]"
@@ -307,7 +337,9 @@ export function CsvPreviewSection({
 
                       return (
                         <tr
-                          key={index}
+                          key={virtualRow.key}
+                          data-index={virtualRow.index}
+                          ref={rowVirtualizer.measureElement}
                           className="group bg-[var(--ge-card)] hover:bg-[var(--ge-panel)]"
                         >
                           <td
@@ -367,6 +399,11 @@ export function CsvPreviewSection({
                         </tr>
                       );
                     })}
+                    {paddingBottom > 0 && (
+                      <tr>
+                        <td style={{ height: paddingBottom }} colSpan={headers.length + 2} />
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
