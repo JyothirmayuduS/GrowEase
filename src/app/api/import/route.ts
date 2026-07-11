@@ -6,7 +6,7 @@ export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
 /** Soft cap so a single request cannot exhaust serverless memory/time. */
-const MAX_IMPORT_ROWS = 2000;
+const MAX_IMPORT_ROWS = 10000;
 
 function encodeEvent(event: ImportStreamEvent): Uint8Array {
   return new TextEncoder().encode(`${JSON.stringify(event)}\n`);
