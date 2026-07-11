@@ -14,12 +14,12 @@ export default function BusinessCenterPage() {
     <AppPage
       title="Workspace"
       eyebrow="Business center"
-      description="Plan, billing, and org settings for Test Corp"
+      description="Plan, billing, and org settings for Jyothirmayudu Srungarapati"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-[22px] font-semibold tracking-[-0.02em] text-[var(--ge-text)]">
-            Test Corp
+            Jyothirmayudu Srungarapati
           </h1>
           <p className="mt-1 text-[13px] text-[var(--ge-text-secondary)]">
             Growth plan · AI CSV importer · Indian RE lead gen
@@ -52,10 +52,10 @@ export default function BusinessCenterPage() {
           <div className="rounded-[var(--ge-radius-lg)] border border-[var(--ge-border)] bg-[var(--ge-panel)] p-4">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--ge-accent)] text-sm font-bold text-white">
-                VK
+                JS
               </div>
               <div>
-                <p className="font-semibold text-[var(--ge-text)]">Test Corp</p>
+                <p className="font-semibold text-[var(--ge-text)]">Jyothirmayudu Srungarapati</p>
                 <p className="text-[12px] text-[var(--ge-text-muted)]">Owner · varun@groweasy.ai</p>
               </div>
             </div>

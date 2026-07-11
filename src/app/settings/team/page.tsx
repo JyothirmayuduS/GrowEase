@@ -95,9 +95,9 @@ export default function TeamMembersPage() {
 
   return (
     <AppPage
-      title="Workspace team"
-      eyebrow="Team Members"
-      description="Roles, invites, and lead ownership for Test Corp"
+      title="Team Members"
+      eyebrow="Organization Settings"
+      description="Roles, invites, and lead ownership for Jyothirmayudu Srungarapati"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>

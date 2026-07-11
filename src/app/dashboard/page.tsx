@@ -123,7 +123,7 @@ export default function DashboardPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-[22px] font-semibold tracking-[-0.02em] text-[var(--ge-text)]">
-            Good morning, Test Corp
+            Good morning, Jyothirmayudu Srungarapati
           </h1>
           <p className="mt-1 text-[13px] text-[var(--ge-text-secondary)]">
             {stats.totals.imports > 0

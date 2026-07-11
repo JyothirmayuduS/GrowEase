@@ -76,14 +76,14 @@ export function Sidebar({ isDrawer = false }: { isDrawer?: boolean } = {}) {
       <div className={cn("border-b border-[#2a2a2a] py-3", isDrawer ? "px-4" : "px-2 min-[980px]:px-4")}>
         <Link
           href="/settings/team"
-          aria-label="Test Corp account"
+          aria-label="Jyothirmayudu Srungarapati account"
           className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-white/5"
         >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--ge-accent)] text-xs font-bold">
-            VK
+            JS
           </div>
           <div className={cn("min-w-0 flex-1", isDrawer ? "block" : "hidden min-[980px]:block")}>
-            <p className="truncate text-sm font-semibold">Test Corp</p>
+            <p className="truncate text-sm font-semibold">Jyothirmayudu Srungarapati</p>
             <p className="text-[11px] text-white/50">Owner</p>
           </div>
           <ChevronRight className={cn("h-4 w-4 text-white/40", isDrawer ? "block" : "hidden min-[980px]:block")} aria-hidden="true" />
