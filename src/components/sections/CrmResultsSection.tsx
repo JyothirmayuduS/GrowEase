@@ -325,7 +325,7 @@ export function CrmResultsSection({
                     Import results. {summary.clean} clean, {summary.needsReview} need review,{" "}
                     {summary.skipped} skipped. Drag column edges to resize.
                   </caption>
-                  <thead>
+                  <thead className="sticky top-0 z-10 bg-[var(--ge-panel)]">
                     <tr>
                       <ResizableTh
                         scope="col"
@@ -640,7 +640,7 @@ function SkippedTable({ rows }: { rows: SkippedRecord[] }) {
     <div className="ge-table-scroll overflow-x-auto">
       <table className="ge-results-table w-full min-w-[720px]">
         <caption className="sr-only">Skipped rows with reasons and source data.</caption>
-        <thead>
+        <thead className="sticky top-0 z-10 bg-[var(--ge-panel)]">
           <tr>
             <Th>Row #</Th>
             <Th>Reason</Th>

@@ -237,7 +237,7 @@ export function CsvPreviewSection({
                     CSV preview with row quality. {summary.clean} clean, {summary.needsReview} need
                     review, {summary.skipped} skipped. Drag column edges to resize.
                   </caption>
-                  <thead className="relative xl:sticky top-0 z-10">
+                  <thead className="sticky top-0 z-10 bg-[var(--ge-panel)]">
                     <tr className="bg-[var(--ge-panel)]">
                       <ResizableTh
                         scope="col"
