@@ -315,7 +315,7 @@ export function CrmResultsSection({
             ) : (
               <div 
                 ref={parentRef}
-                className="ge-table-scroll max-h-[70vh] md:overflow-auto"
+                className="ge-table-scroll max-h-[70vh] overflow-auto"
               >
                 <table
                   className="ge-results-table table-fixed"
