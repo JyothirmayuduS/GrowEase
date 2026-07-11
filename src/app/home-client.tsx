@@ -26,6 +26,19 @@ export function HomeClient() {
   const { showToast } = useToast();
   const [view, setView] = useState<AppView>("upload");
   const [dbConnected, setDbConnected] = useState<boolean | null>(null);
+  const [isFirstVisit, setIsFirstVisit] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const visited = sessionStorage.getItem("hasVisitedGrowEasyUpload");
+      if (!visited) {
+        setIsFirstVisit(true);
+        sessionStorage.setItem("hasVisitedGrowEasyUpload", "true");
+      } else {
+        setIsFirstVisit(false);
+      }
+    }
+  }, []);
   const [parsedCsv, setParsedCsv] = useState<ParsedCsv | null>(null);
   const [importResult, setImportResult] = useState<ImportApiResponse | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
@@ -304,7 +317,7 @@ export function HomeClient() {
   }
 
   return (
-    <AppShell showSidebar={view !== "upload"}>
+    <AppShell showSidebar={view !== "upload" || !isFirstVisit}>
       {dbConnected === false && (
         <div className="mx-6 mt-6 flex items-center gap-3 rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3.5 text-sm text-rose-400">
           <AlertCircle className="h-5 w-5 shrink-0" />
@@ -314,7 +327,7 @@ export function HomeClient() {
         </div>
       )}
 
-      {view === "upload" && <CsvUploadSection onFileSelect={handleFileSelect} />}
+      {view === "upload" && <CsvUploadSection onFileSelect={handleFileSelect} isFirstVisit={isFirstVisit} />}
 
       {view === "preview" && parsedCsv && (
         <CsvPreviewSection
