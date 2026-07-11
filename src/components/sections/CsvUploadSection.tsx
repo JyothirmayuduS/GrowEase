@@ -174,10 +174,8 @@ export function CsvUploadSection({ onFileSelect, isFirstVisit = true }: CsvUploa
             handleFiles(e.dataTransfer.files);
           }}
           className={cn(
-            "relative flex h-full w-full max-w-[1200px] flex-col items-center justify-center rounded-xl bg-white px-6 py-12 text-center transition-all duration-200 dark:bg-slate-900",
-            isDragging
-              ? "border-2 border-dashed border-[#1473e6] bg-[#f0f7ff] dark:bg-blue-950/20"
-              : "border border-slate-200 shadow-sm dark:border-slate-800"
+            "ge-dropzone relative flex h-full w-full max-w-[1200px] flex-col items-center justify-center rounded-xl px-6 py-12 text-center",
+            isDragging && "is-active"
           )}
         >
           <input
