@@ -17,7 +17,6 @@ import type { ImportApiResponse } from "@/lib/types/crm";
 import type { AppView, ParsedCsv } from "@/lib/types/app";
 import { assessRecordQuality } from "@/lib/validation/record-quality";
 import { AlertCircle } from "lucide-react";
-import { isAppSessionActive, markAppSessionActive } from "@/lib/store/visit-store";
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -31,15 +30,16 @@ export function HomeClient() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // If the module-level variable is false, they just loaded the JS bundle (fresh visit/refresh).
-    // If it's true, they navigated here from another page within the SPA without reloading.
-    if (!isAppSessionActive) {
-      setIsFirstVisit(true);
-      markAppSessionActive();
-    } else {
-      setIsFirstVisit(false);
+    if (typeof window !== "undefined") {
+      const visited = sessionStorage.getItem("hasVisitedGrowEasyUpload_v5");
+      if (!visited) {
+        setIsFirstVisit(true);
+        sessionStorage.setItem("hasVisitedGrowEasyUpload_v5", "true");
+      } else {
+        setIsFirstVisit(false);
+      }
+      setMounted(true);
     }
-    setMounted(true);
   }, []);
   const [parsedCsv, setParsedCsv] = useState<ParsedCsv | null>(null);
   const [importResult, setImportResult] = useState<ImportApiResponse | null>(null);
