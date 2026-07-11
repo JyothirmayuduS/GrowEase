@@ -97,7 +97,7 @@ export function CsvPreviewSection({
     return d;
   }, [headers]);
 
-  const { widths, resize, reset, stickyLeft } = useColumnWidths(
+  const { widths, resize, reset, expand, isExpanded, stickyLeft } = useColumnWidths(
     columnKeys,
     defaults,
     `ge-preview-cols:v2:${data.fileName}`
@@ -204,12 +204,12 @@ export function CsvPreviewSection({
             <div className="flex shrink-0 items-center gap-2">
               <button
                 type="button"
-                onClick={reset}
+                onClick={isExpanded ? reset : expand}
                 className="inline-flex items-center gap-1.5 rounded-[var(--ge-radius-md)] border border-[var(--ge-border-strong)] bg-[var(--ge-card)] px-3 py-1.5 text-[12px] font-semibold text-[var(--ge-text-secondary)] hover:text-[var(--ge-text)]"
-                title="Reset column widths"
+                title={isExpanded ? "Reset column widths" : "Expand column widths"}
               >
                 <Columns3 className="h-3.5 w-3.5" aria-hidden />
-                Reset columns
+                {isExpanded ? "Reset columns" : "Expand columns"}
               </button>
               <PageAnnotations storageKey={notesKey} />
             </div>

@@ -41,6 +41,7 @@ export function useColumnWidths(
   }, [keySig, storageKey]);
 
   const [widths, setWidths] = useState<Record<string, number>>(initial);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     setWidths(initial);
@@ -57,6 +58,7 @@ export function useColumnWidths(
 
   const resize = useCallback((key: string, next: number) => {
     setWidths((prev) => ({ ...prev, [key]: clamp(next) }));
+    setIsExpanded(false);
   }, []);
 
   const reset = useCallback(() => {
@@ -65,6 +67,17 @@ export function useColumnWidths(
       base[key] = defaults[key] ?? 140;
     }
     setWidths(base);
+    setIsExpanded(false);
+  }, [keySig, defaults]);
+
+  const expand = useCallback(() => {
+    const base: Record<string, number> = {};
+    for (const key of keySig.split("\0").filter(Boolean)) {
+      const defaultValue = defaults[key] ?? 140;
+      base[key] = Math.round(defaultValue * 1.5);
+    }
+    setWidths(base);
+    setIsExpanded(true);
   }, [keySig, defaults]);
 
   /** Cumulative left offset for sticky columns in `order` (excluding the last). */
@@ -77,5 +90,5 @@ export function useColumnWidths(
     [widths]
   );
 
-  return { widths, resize, reset, stickyLeft };
+  return { widths, resize, reset, expand, isExpanded, stickyLeft };
 }

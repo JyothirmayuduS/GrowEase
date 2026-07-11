@@ -201,7 +201,7 @@ export function CrmResultsSection({
   };
 
   const colKeys = useMemo(() => [...RESULTS_COL_KEYS], []);
-  const { widths, resize, reset, stickyLeft } = useColumnWidths(
+  const { widths, resize, reset, expand, isExpanded, stickyLeft } = useColumnWidths(
     colKeys,
     RESULTS_DEFAULTS,
     `ge-results-cols:v3`
@@ -261,12 +261,12 @@ export function CrmResultsSection({
               <PageAnnotations storageKey={notesKey} />
               <button
                 type="button"
-                onClick={reset}
+                onClick={isExpanded ? reset : expand}
                 className="ge-btn-secondary inline-flex w-full items-center justify-center gap-1.5 sm:w-auto"
-                title="Reset column widths"
+                title={isExpanded ? "Reset column widths" : "Expand column widths"}
               >
                 <Columns3 className="h-3.5 w-3.5" aria-hidden />
-                Reset columns
+                {isExpanded ? "Reset columns" : "Expand columns"}
               </button>
               <button
                 type="button"
