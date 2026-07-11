@@ -17,6 +17,7 @@ import type { ImportApiResponse } from "@/lib/types/crm";
 import type { AppView, ParsedCsv } from "@/lib/types/app";
 import { assessRecordQuality } from "@/lib/validation/record-quality";
 import { AlertCircle } from "lucide-react";
+import { isAppSessionActive, markAppSessionActive } from "@/lib/store/visit-store";
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -27,18 +28,15 @@ export function HomeClient() {
   const [view, setView] = useState<AppView>("upload");
   const [dbConnected, setDbConnected] = useState<boolean | null>(null);
   const [isFirstVisit, setIsFirstVisit] = useState<boolean>(true);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const visited = sessionStorage.getItem("hasVisitedGrowEasyUpload_v3");
-      if (!visited) {
-        setIsFirstVisit(true);
-        sessionStorage.setItem("hasVisitedGrowEasyUpload_v3", "true");
-      } else {
-        setIsFirstVisit(false);
-      }
-      setMounted(true);
+    // If the module-level variable is false, they just loaded the JS bundle (fresh visit/refresh).
+    // If it's true, they navigated here from another page within the SPA without reloading.
+    if (!isAppSessionActive) {
+      setIsFirstVisit(true);
+      markAppSessionActive();
+    } else {
+      setIsFirstVisit(false);
     }
   }, []);
   const [parsedCsv, setParsedCsv] = useState<ParsedCsv | null>(null);
@@ -289,11 +287,6 @@ export function HomeClient() {
     setView("upload");
     setIsFirstVisit(false);
   };
-
-  if (!mounted) {
-    return <div className="min-h-screen w-full bg-[#f8f9fa] dark:bg-slate-950" />;
-  }
-
   const isParseImporting = view === "importing" && loaderSessionKey.startsWith("parse");
   const isAiImporting = view === "importing" && loaderSessionKey.startsWith("import");
 
