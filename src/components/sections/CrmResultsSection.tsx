@@ -216,7 +216,7 @@ export function CrmResultsSection({
           key === "#"
             ? String(item.index + 1)
             : key === "__status"
-              ? item.state
+              ? item.state + (item.quality.issues.length ? ` (${item.quality.issues.length} issues)` : "")
               : String(item.record[key as keyof CrmLeadRecord] || "");
         if (val.length > maxLen) maxLen = val.length;
       }

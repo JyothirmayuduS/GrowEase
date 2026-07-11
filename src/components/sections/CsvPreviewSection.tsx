@@ -112,7 +112,7 @@ export function CsvPreviewSection({
           key === "#"
             ? String(item.index + 1)
             : key === "__status"
-              ? item.assessment.state
+              ? item.assessment.state + (item.assessment.flags.length ? ` (${item.assessment.flags.length} issues)` : "")
               : item.row[key] || "";
         if (val.length > maxLen) maxLen = val.length;
       }
