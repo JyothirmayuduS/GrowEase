@@ -27,6 +27,7 @@ export function HomeClient() {
   const [view, setView] = useState<AppView>("upload");
   const [dbConnected, setDbConnected] = useState<boolean | null>(null);
   const [isFirstVisit, setIsFirstVisit] = useState<boolean>(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -37,6 +38,7 @@ export function HomeClient() {
       } else {
         setIsFirstVisit(false);
       }
+      setMounted(true);
     }
   }, []);
   const [parsedCsv, setParsedCsv] = useState<ParsedCsv | null>(null);
@@ -287,6 +289,10 @@ export function HomeClient() {
     setView("upload");
     setIsFirstVisit(false);
   };
+
+  if (!mounted) {
+    return <div className="min-h-screen w-full bg-[#f8f9fa] dark:bg-slate-950" />;
+  }
 
   const isParseImporting = view === "importing" && loaderSessionKey.startsWith("parse");
   const isAiImporting = view === "importing" && loaderSessionKey.startsWith("import");
