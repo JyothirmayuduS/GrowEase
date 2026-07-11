@@ -133,13 +133,13 @@ export function CsvUploadSection({ onFileSelect, isFirstVisit = true }: CsvUploa
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-[#f8f9fa] dark:bg-slate-950">
-      <header className="flex h-16 shrink-0 items-center justify-between px-4 sm:px-6">
+      <header className="flex h-16 shrink-0 items-center justify-between bg-[#141414] px-4 sm:px-6">
         <div className="flex items-center gap-8">
           <Link href="/" className="transition-opacity hover:opacity-80">
-            <AppLogo />
+            <AppLogo variant="sidebar" />
           </Link>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 text-white">
           <ThemeToggle />
         </div>
       </header>
