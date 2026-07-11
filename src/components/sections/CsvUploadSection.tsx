@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { CloudStorageButtons } from "@/components/features/csv-import/CloudStorageButtons";
+
 import { CsvIllustration } from "@/components/features/csv-import/CsvIllustration";
 import { ACCEPTED_TYPES } from "@/components/features/csv-import/FileDropzone";
 import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";
@@ -115,12 +115,6 @@ export function CsvUploadSection({ onFileSelect }: CsvUploadSectionProps) {
               Select a file
             </button>
 
-            <div className="mt-12 flex flex-col items-center space-y-4">
-              <p className="text-[14px] font-medium text-[#5e5e5e] dark:text-slate-400">
-                Or from another storage account
-              </p>
-              <CloudStorageButtons variant="compact" onFileSelect={onFileSelect} />
-            </div>
 
             <div className="mt-12">
               <p className="text-[13px] text-[#8e8e8e] dark:text-slate-500">
