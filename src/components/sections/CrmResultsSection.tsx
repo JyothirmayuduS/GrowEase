@@ -2,7 +2,7 @@
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useMemo, useRef, useState, useCallback } from "react";
-import { ArrowDown, ArrowUp, Columns3 } from "lucide-react";
+import { ArrowDown, ArrowUp, Columns3, Loader2, ChevronDown, FileText, FileJson } from "lucide-react";
 
 import { LeadSourcesPage } from "@/components/layout/LeadSourcesPage";
 import { PageAnnotations } from "@/components/ui/page-annotations";
@@ -104,8 +104,12 @@ function recordsToCsv(records: CrmLeadRecord[]): string {
   return generateCsv(records);
 }
 
-function downloadCsv(content: string, filename: string) {
-  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+function recordsToJson(records: CrmLeadRecord[]): string {
+  return JSON.stringify(records, null, 2);
+}
+
+function downloadFile(content: string, filename: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -168,6 +172,8 @@ export function CrmResultsSection({
   const [filter, setFilter] = useState<Filter>(
     imported === 0 && skipped > 0 ? "skipped" : "all"
   );
+  const [isExporting, setIsExporting] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   const tableRows = useMemo(() => {
     if (filter === "clean") return enriched.filter((r) => r.state === "clean");
@@ -191,13 +197,26 @@ export function CrmResultsSection({
       ? rowVirtualizer.getTotalSize() - (virtualRows[virtualRows.length - 1]?.end || 0)
       : 0;
 
-  const handleDownload = () => {
-    downloadCsv(recordsToCsv(result.imported), generateCsvFilename("groweasy-import"));
+  const handleDownload = async (format: "csv" | "json") => {
+    setShowExportMenu(false);
+    setIsExporting(true);
+    
+    // Simulate a brief delay to show the animation (often instant otherwise)
+    await new Promise(r => setTimeout(r, 600));
+
+    if (format === "csv") {
+      downloadFile(recordsToCsv(result.imported), generateCsvFilename("groweasy-import"), "text/csv;charset=utf-8;");
+    } else {
+      downloadFile(recordsToJson(result.imported), generateCsvFilename("groweasy-import").replace(".csv", ".json"), "application/json;charset=utf-8;");
+    }
+
     showToast({
       variant: "success",
-      title: "CSV exported",
+      title: `${format.toUpperCase()} exported`,
       description: `${imported} records · ${CRM_FIELDS.length}-field schema`,
     });
+    
+    setIsExporting(false);
   };
 
   const colKeys = useMemo(() => [...RESULTS_COL_KEYS], []);
@@ -299,15 +318,44 @@ export function CrmResultsSection({
                 <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
                 {backLabel}
               </button>
-              <button
-                type="button"
-                onClick={handleDownload}
-                disabled={imported === 0}
-                className="ge-btn-primary ge-btn-primary-lg inline-flex w-full items-center justify-center gap-1.5 sm:w-auto"
-              >
-                <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
-                Export csv
-              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowExportMenu((p) => !p)}
+                  onBlur={() => setTimeout(() => setShowExportMenu(false), 200)}
+                  disabled={imported === 0 || isExporting}
+                  className="ge-btn-primary ge-btn-primary-lg inline-flex w-full items-center justify-center gap-1.5 sm:w-auto"
+                >
+                  {isExporting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <ArrowDown className="h-4 w-4" aria-hidden="true" />
+                  )}
+                  Export
+                  <ChevronDown className="ml-1 h-3.5 w-3.5 opacity-70" aria-hidden="true" />
+                </button>
+                
+                {showExportMenu && !isExporting && (
+                  <div className="absolute right-0 top-full z-50 mt-2 w-48 animate-in fade-in slide-in-from-top-2 rounded-xl border border-[var(--ge-border)] bg-[var(--ge-card)] p-1 shadow-lg">
+                    <button
+                      type="button"
+                      onClick={() => handleDownload("csv")}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--ge-panel)]"
+                    >
+                      <FileText className="h-4 w-4 text-[var(--ge-text-muted)]" aria-hidden="true" />
+                      Export as CSV
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDownload("json")}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--ge-panel)]"
+                    >
+                      <FileJson className="h-4 w-4 text-[var(--ge-text-muted)]" aria-hidden="true" />
+                      Export as JSON
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
